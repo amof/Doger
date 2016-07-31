@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/tent.svg</file>
+        <file>images/home.svg</file>
+        <file>images/noImage.png</file>
+        <file>images/backpack.svg</file>
+        <file>images/wardrobe.svg</file>
+        <file>images/backpack.png</file>
+        <file>images/self.png</file>
+    </qresource>
+</RCC>
