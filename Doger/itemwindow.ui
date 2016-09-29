@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Itemwindow</class>
- <widget class="QWidget" name="Itemwindow">
+ <class>ItemWindow</class>
+ <widget class="QDialog" name="ItemWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>684</width>
+    <width>688</width>
     <height>665</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Gestion des items</string>
+   <string>Dialog</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_7">
    <item>
@@ -670,7 +670,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Enregistrer</string>
+            <string>Enregister</string>
            </property>
           </widget>
          </item>

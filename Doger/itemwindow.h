@@ -1,7 +1,7 @@
 #ifndef ITEMWINDOW_H
 #define ITEMWINDOW_H
 
-#include <QWidget>
+#include <QDialog>
 #include <QImage>
 #include <QImageReader>
 #include <QImageWriter>
@@ -12,18 +12,20 @@
 #include <QSettings>
 #include <QString>
 #include <QLabel>
+#include <QVector>
+#include <sqlite.h>
 
 namespace Ui {
-class Itemwindow;
+class ItemWindow;
 }
 
-class Itemwindow : public QWidget
+class ItemWindow : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit Itemwindow(QWidget *parent = 0);
-    ~Itemwindow();
+    explicit ItemWindow(QWidget *parent = 0, SqLite *sqlitepointer = NULL, int index=0);
+    ~ItemWindow();
     bool loadFile(const QString &, QLabel *label);
     void setPage(quint8 page);
 
@@ -33,17 +35,35 @@ public:
 private slots:
     void setImage(const QImage &newImage, QLabel *label);
 
-    void on_btn_alim_loadImage_clicked();
+    void loadDatabase(int index);
 
-    void on_btn_alim_deleteImage_clicked();
 
     void on_btn_item_loadImage_clicked();
 
     void on_btn_item_deleteImage_clicked();
 
+    void on_btn_alim_loadImage_clicked();
+
+    void on_btn_alim_deleteImage_clicked();
+
+    void on_btn_item_save_clicked();
+
+    void on_cb_item_brand_activated(int index);
+
+    void on_btn_item_newBrand_clicked();
+
+    #define TO_INSERT 0
+    #define TO_UPDATE 1
+
 private:
-    Ui::Itemwindow *ui;
+    Ui::ItemWindow *ui;
     QImage image;
+    QVector<int> idCategories;
+    QVector<int> idBrand;
+    SqLite *sqlite;
+    bool whatToDo=TO_INSERT;
+    int id_item=0;
+
 };
 
 #endif // ITEMWINDOW_H
