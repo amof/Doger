@@ -55,6 +55,13 @@ private slots:
     #define TO_INSERT 0
     #define TO_UPDATE 1
 
+
+    void on_btn_alim_save_clicked();
+
+    void on_btn_alim_newBrand_clicked();
+
+    void on_cb_alim_brand_activated(int index);
+
 private:
     Ui::ItemWindow *ui;
     QImage image;
@@ -63,6 +70,7 @@ private:
     SqLite *sqlite;
     bool whatToDo=TO_INSERT;
     int id_item=0;
+    quint8 currentPage=0;
 
 };
 

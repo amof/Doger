@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Gestion du placard</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_7">
    <item>
@@ -439,6 +439,9 @@
                 <font>
                  <pointsize>12</pointsize>
                 </font>
+               </property>
+               <property name="value">
+                <number>1</number>
                </property>
               </widget>
              </item>
@@ -927,21 +930,6 @@
                   <property name="sizeAdjustPolicy">
                    <enum>QComboBox::AdjustToContents</enum>
                   </property>
-                  <item>
-                   <property name="text">
-                    <string>Ajouter</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>Sawyer</string>
-                   </property>
-                  </item>
-                  <item>
-                   <property name="text">
-                    <string>Sea to Summit</string>
-                   </property>
-                  </item>
                  </widget>
                 </item>
                 <item>
@@ -1022,7 +1010,11 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_33">
                 <item>
-                 <widget class="QSpinBox" name="sb_alim_quantity"/>
+                 <widget class="QSpinBox" name="sb_alim_quantity">
+                  <property name="value">
+                   <number>1</number>
+                  </property>
+                 </widget>
                 </item>
                 <item>
                  <spacer name="horizontalSpacer_23">
