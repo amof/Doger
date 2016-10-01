@@ -32,17 +32,17 @@ void SqLite::closeDB(){
     }
 }
 
-void SqLite::addCategoryBrand(int catBrand, QString name){
+void SqLite::addCategoryBrand(int sqlite_name, QString name){
 
     QString Squery="";
     QSqlQuery query;
 
-    switch (catBrand) {
-    case CATEGORY:
+    switch (sqlite_name) {
+    case sqlite_CATEGORY:
         Squery = "INSERT INTO Categories VALUES (NULL , :name)";
         break;
 
-    case BRAND:
+    case sqlite_BRAND:
         Squery = "INSERT INTO Brands VALUES (NULL , :name)";
         break;
     default:
@@ -52,29 +52,38 @@ void SqLite::addCategoryBrand(int catBrand, QString name){
     query.prepare(Squery);
     query.bindValue(":name", name);
 
-    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout de "<< name<<" : "<<db.lastError();
+    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout de "<< name<<" : "<<query.lastError();
 }
 
-void SqLite::deleteCategoryBrand(int catBrand, int id){
+void SqLite::deleteCBIF(int sqlite_name, int id){
 
     QString Squery="";
     QSqlQuery query;
 
-    switch (catBrand) {
-    case CATEGORY:
+    switch (sqlite_name) {
+    case sqlite_CATEGORY:
         Squery = "DELETE FROM Categories WHERE id_category =:id";
         break;
 
-    case BRAND:
+    case sqlite_BRAND:
         Squery = "DELETE FROM Brands WHERE id_brand =:id";
         break;
+
+    case sqlite_ITEM:
+        Squery = "DELETE FROM Items WHERE id_item=:id";
+        break;
+
+    case sqlite_FOOD:
+        Squery = "DELETE FROM Food WHERE id_food=:id";
+        break;
+
     default:
         break;
     }
 
     query.prepare(Squery);
     query.bindValue(":id", id);
-    if(!query.exec()) qDebug("Erreur lors de la suppression.");
+    if(!query.exec()) qDebug()<<"[SQLite] Erreur lors de la suppression de ID= "<< QString::number(id)<<" : "<<query.lastError();
 }
 
 void SqLite::modifyCategory(int id, QString name) {
@@ -99,7 +108,7 @@ void SqLite::modifyBrand(int id, QString name) {
     if(!query.exec()) qDebug()<<"[SQLite] Erreur dans la modification d'une marque "<<db.lastError();
 }
 
-void SqLite::getCategoryBrand(int catBrand, QVector<int> *vector, QComboBox *cb) {
+void SqLite::getCategoryBrand(int sqlite_name, QVector<int> *vector, QComboBox *cb) {
 
     cb->clear();
     vector->clear();
@@ -107,12 +116,12 @@ void SqLite::getCategoryBrand(int catBrand, QVector<int> *vector, QComboBox *cb)
     QString Squery = "";
     QSqlQuery query;
 
-    switch (catBrand) {
-    case CATEGORY:
+    switch (sqlite_name) {
+    case sqlite_CATEGORY:
         Squery = "SELECT id_category, name FROM Categories ORDER BY name ASC";
         break;
 
-    case BRAND:
+    case sqlite_BRAND:
         Squery = "SELECT id_brand, name FROM Brands ORDER BY name ASC";
         break;
     default:

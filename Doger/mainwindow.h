@@ -25,6 +25,8 @@ private slots:
     void loadDatabase();
     void refreshDatabase();
     void initActionsConnections();
+    void displayItemWindow(quint8 page, int index);
+    void deleteQuestion(QString name, int toDelete, int index);
     void on_btn_materiel_clicked();
 
     void on_btn_liste_clicked();
@@ -62,17 +64,24 @@ private slots:
 
     void on_btn_materiel_modify_clicked();
 
+    void on_tw_alimentation_doubleClicked(const QModelIndex &index);
+
+    void on_btn_alimentation_modify_clicked();
+
+    void on_btn_alimentation_delete_clicked();
+
 public:
 
 
 private:
     Ui::MainWindow *ui;
-    Listwindow *listwindow;
-    Statisticswindow *statisticswindow;
     QVector<int> idCategories;
     QVector<int> idBrand;
     SqLite *sqlite;
-    QMenu* contextMenu;
+    QSqlQueryModel *model ;
+    QSortFilterProxyModel *filter;
+    QSqlQueryModel *modelFood;
+    QSortFilterProxyModel *filterFood;
 };
 
 #endif // MAINWINDOW_H

@@ -11,17 +11,20 @@ public:
     void openDB(QString dbName);
     void closeDB();
 
-    void addCategoryBrand(int catBrand, QString name);
-    void deleteCategoryBrand(int catBrand, int id);
+    void addCategoryBrand(int sqlite_name, QString name);
+    void deleteCBIF(int sqlite_name, int id);
 
     void modifyCategory(int id, QString name);
     void modifyBrand(int id, QString name);
 
-    void getCategoryBrand(int catBrand, QVector<int> *vector, QComboBox *cb);
+    void getCategoryBrand(int sqlite_name, QVector<int> *vector, QComboBox *cb);
 
 public:
-    #define CATEGORY    1
-    #define BRAND   2
+
+    #define sqlite_CATEGORY    1
+    #define sqlite_BRAND       2
+    #define sqlite_ITEM        3
+    #define sqlite_FOOD        4
 
 private:
     QSqlDatabase db ;

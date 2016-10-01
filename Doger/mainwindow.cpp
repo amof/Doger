@@ -6,9 +6,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    listwindow = new Listwindow;
-    statisticswindow = new Statisticswindow;
     sqlite = new SqLite;
+    model = new QSqlQueryModel();
+    filter = new QSortFilterProxyModel();
+    modelFood = new QSqlQueryModel();
+    filterFood = new QSortFilterProxyModel();
 
     ui->stackedWidget->setCurrentIndex(0);
     ui->frame_title->hide();
@@ -18,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->btn_config_brand_delete->hide();
     ui->btn_config_brand_save->hide();
     ui->le_config_brandName->hide();
+
+    ui->tw_material->setCurrentIndex(0);
 
     loadConfig();
     loadDatabase();
@@ -30,7 +34,22 @@ MainWindow::~MainWindow()
 {
     sqlite->closeDB();
     delete sqlite;
+    delete model, modelFood, filter, filterFood;
     delete ui;
+}
+
+/************************************************************************/
+/* Base functions                                                       */
+/************************************************************************/
+
+void MainWindow::initActionsConnections()
+{
+    connect(ui->actionA_propos, SIGNAL(triggered()), this, SLOT(on_btn_about_clicked()));
+    connect(ui->actionConfiguration, SIGNAL(triggered()), this, SLOT(on_btn_config_clicked()));
+    connect(ui->actionPlacard, SIGNAL(triggered()), this, SLOT(on_btn_materiel_clicked()));
+    connect(ui->actionListes, SIGNAL(triggered()), this, SLOT(on_btn_liste_clicked()));
+    connect(ui->actionPlans_alimentation, SIGNAL(triggered()), this, SLOT(on_btn_alimentation_clicked()));
+    connect(ui->actionQuitter, SIGNAL(triggered()), this, SLOT(close()));
 }
 
 void MainWindow::loadConfig()
@@ -74,28 +93,47 @@ void MainWindow::loadDatabase(){
 
 void MainWindow::refreshDatabase(){
 
-    sqlite->getCategoryBrand(CATEGORY, &idCategories, ui->cb_config_categories);
-    sqlite->getCategoryBrand(BRAND, &idBrand, ui->cb_config_brand);
+    sqlite->getCategoryBrand(sqlite_CATEGORY, &idCategories, ui->cb_config_categories);
+    sqlite->getCategoryBrand(sqlite_BRAND, &idBrand, ui->cb_config_brand);
     ui->cb_config_categories->insertItem(0,"Nouvelle");
     ui->cb_config_brand->insertItem(0,"Nouvelle");
 
-    QString req="SELECT Items.id_item, Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity, Items.desired FROM Brands, Categories INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand WHERE Brands.id_brand = Items.id_brand AND Categories.id_category = Categories.id_category";
-    QSqlQueryModel *model = new QSqlQueryModel();
+    QString req="SELECT Items.id_item, Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity, Items.desired FROM Categories, Brands INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand ORDER BY Categories.name ASC, Brands.name ASC, Items.reference ASC";
+
     model->setQuery(req);
     model->setHeaderData(1, Qt::Horizontal, tr("Catégorie"));
     model->setHeaderData(2, Qt::Horizontal, tr("Marque"));
     model->setHeaderData(3, Qt::Horizontal, tr("Modèle"));
-    model->setHeaderData(4, Qt::Horizontal, tr("Poids"));
+    model->setHeaderData(4, Qt::Horizontal, tr("Poids[gr]"));
     model->setHeaderData(5, Qt::Horizontal, tr("Quantité"));
     model->setHeaderData(6, Qt::Horizontal, tr("Liste de souhait"));
 
-    QSortFilterProxyModel *filter = new QSortFilterProxyModel();
     filter->setSourceModel(model);
 
-    ui->tw_itemsList->setModel(filter);
     ui->tw_itemsList->setSortingEnabled(true);
-    //ui->tw_itemsList->hideColumn(0);
+    ui->tw_itemsList->setModel(filter);
+    ui->tw_itemsList->hideColumn(0);
+    ui->tw_itemsList->resizeColumnsToContents();
+
+    QString reqFood="SELECT Food.id_food, Brands.name, Food.reference, Food.quantity, Food.expirationDate, Food.energy FROM Food INNER JOIN Categories ON Food.id_category = Categories.id_category INNER JOIN Brands ON Food.id_brand = Brands.id_brand";
+    modelFood->setQuery(reqFood);
+    modelFood->setHeaderData(1, Qt::Horizontal, tr("Marque"));
+    modelFood->setHeaderData(2, Qt::Horizontal, tr("Modèle"));
+    modelFood->setHeaderData(3, Qt::Horizontal, tr("Quantité"));
+    modelFood->setHeaderData(4, Qt::Horizontal, tr("Date d'expriation"));
+    modelFood->setHeaderData(5, Qt::Horizontal, tr("Energie[kcal]"));
+
+    filterFood->setSourceModel(modelFood);
+
+    ui->tw_alimentation->setSortingEnabled(true);
+    ui->tw_alimentation->setModel(filterFood);
+    ui->tw_alimentation->hideColumn(0);
+    ui->tw_itemsList->resizeColumnsToContents();
 }
+
+/************************************************************************/
+/* Actions in HomeScreen                                                */
+/************************************************************************/
 
 void MainWindow::on_btn_home_clicked()
 {
@@ -108,7 +146,6 @@ void MainWindow::on_btn_materiel_clicked()
     ui->stackedWidget->setCurrentIndex(1);
     ui->frame_title->show();
     ui->lbl_title->setText("Gestion du placard");
-
 }
 
 void MainWindow::on_btn_liste_clicked()
@@ -139,37 +176,106 @@ void MainWindow::on_btn_about_clicked()
     ui->lbl_title->setText("A propos");
 }
 
+/************************************************************************/
+/* Gestion du placard                                                   */
+/************************************************************************/
+
+// Materiel
 void MainWindow::on_btn_materiel_add_clicked()
 {
-    ItemWindow *itemwindow = new ItemWindow(0,sqlite,0);
-    if(!itemwindow->exec())
-    {
-        itemwindow->setPage(PAGE_MATERIEL);
+    displayItemWindow(PAGE_MATERIEL, 0);
+
+}
+
+void MainWindow::on_tw_itemsList_doubleClicked(const QModelIndex &index)
+{
+    displayItemWindow(PAGE_MATERIEL, index.sibling(index.row(),0).data().toInt());
+}
+
+void MainWindow::on_btn_materiel_delete_clicked()
+{
+    deleteQuestion(ui->tw_itemsList->currentIndex().sibling(ui->tw_itemsList->currentIndex().row(),2).data().toString(),
+                   sqlite_ITEM,
+                   ui->tw_itemsList->currentIndex().sibling(ui->tw_itemsList->currentIndex().row(),0).data().toInt());
+}
+
+void MainWindow::on_btn_materiel_modify_clicked()
+{
+    on_tw_itemsList_doubleClicked(ui->tw_itemsList->currentIndex());
+}
+
+// Alimentation
+
+void MainWindow::on_btn_alimentation_add_clicked()
+{
+    displayItemWindow(PAGE_ALIMENTATION, 0);
+}
+
+void MainWindow::on_tw_alimentation_doubleClicked(const QModelIndex &index)
+{
+    displayItemWindow(PAGE_ALIMENTATION, index.sibling(index.row(),0).data().toInt());
+}
+
+void MainWindow::on_btn_alimentation_modify_clicked()
+{
+    on_tw_itemsList_doubleClicked(ui->tw_alimentation->currentIndex());
+}
+
+void MainWindow::on_btn_alimentation_delete_clicked()
+{
+    deleteQuestion(ui->tw_alimentation->currentIndex().sibling(ui->tw_alimentation->currentIndex().row(),2).data().toString(),
+                   sqlite_FOOD,
+                   ui->tw_alimentation->currentIndex().sibling(ui->tw_alimentation->currentIndex().row(),0).data().toInt());
+}
+
+void MainWindow::displayItemWindow(quint8 page, int index){
+    ItemWindow *itemwindow = new ItemWindow(0,sqlite, index);
+    itemwindow->setPage(page);
+
+    if(!itemwindow->exec()){
         itemwindow->show();
     }
     delete itemwindow;
     refreshDatabase();
-
 }
 
-void MainWindow::on_btn_alimentation_add_clicked()
-{
-    /*itemwindow->show();
-    itemwindow->setPage(PAGE_ALIMENTATION);*/
+void MainWindow::deleteQuestion(QString name, int toDelete, int index){
+    int reponse = QMessageBox::question(this, "Supression?", tr("Supprimer %1 ?").arg(name),QMessageBox::Yes | QMessageBox::No);
+
+    if(reponse == QMessageBox::Yes){
+        sqlite->deleteCBIF(toDelete, index);
+        refreshDatabase();
+    }
 }
 
-
+/************************************************************************/
+/* Listes                                                               */
+/************************************************************************/
 
 void MainWindow::on_btn_list_add_clicked()
 {
-    listwindow->show();
+    ListWindow *listwindow = new ListWindow();
+
+    if(!listwindow->exec()){
+        listwindow->show();
+    }
+    delete listwindow;
+
 }
 
 void MainWindow::on_btn_matos_stats_clicked()
 {
-    statisticswindow->show();
+    /*Statisticswindow *statisticswindow;
+
+    if(!statisticswindow->exec()){
+        statisticswindow->show();
+    }
+    delete statisticswindow;*/
 }
 
+/************************************************************************/
+/* Configuration                                                        */
+/************************************************************************/
 
 void MainWindow::on_cb_config_categories_activated(int index)
 {
@@ -201,25 +307,13 @@ void MainWindow::on_cb_config_brand_activated(int index)
         ui->le_config_brandName->show();
         ui->le_config_brandName->setText(ui->cb_config_brand->itemText(index));
     }
-
 }
-
-void MainWindow::initActionsConnections()
-{
-    connect(ui->actionA_propos, SIGNAL(triggered()), this, SLOT(on_btn_about_clicked()));
-    connect(ui->actionConfiguration, SIGNAL(triggered()), this, SLOT(on_btn_config_clicked()));
-    connect(ui->actionPlacard, SIGNAL(triggered()), this, SLOT(on_btn_materiel_clicked()));
-    connect(ui->actionListes, SIGNAL(triggered()), this, SLOT(on_btn_liste_clicked()));
-    connect(ui->actionPlans_alimentation, SIGNAL(triggered()), this, SLOT(on_btn_alimentation_clicked()));
-    connect(ui->actionQuitter, SIGNAL(triggered()), this, SLOT(close()));
-}
-
 
 void MainWindow::on_btn_config_categorie_save_clicked()
 {
     QString text = "";
     if(ui->cb_config_categories->currentIndex()==0){
-        sqlite->addCategoryBrand(CATEGORY,ui->le_config_categoryName->text());
+        sqlite->addCategoryBrand(sqlite_CATEGORY,ui->le_config_categoryName->text());
         text="Ajout d'une catégorie avec succès.";
     }
     else{
@@ -238,7 +332,7 @@ void MainWindow::on_btn_config_categorie_save_clicked()
 
 void MainWindow::on_btn_config_categorie_delete_clicked()
 {
-    sqlite->deleteCategoryBrand(CATEGORY, idCategories.at(ui->cb_config_categories->currentIndex()-1));
+    sqlite->deleteCBIF(sqlite_CATEGORY, idCategories.at(ui->cb_config_categories->currentIndex()-1));
 
     ui->btn_config_categorie_delete->hide();
     ui->btn_config_categorie_save->hide();
@@ -253,7 +347,7 @@ void MainWindow::on_btn_config_brand_save_clicked()
 {
     QString text = "";
     if(ui->cb_config_brand->currentIndex()==0){
-        sqlite->addCategoryBrand(BRAND, ui->le_config_brandName->text());
+        sqlite->addCategoryBrand(sqlite_BRAND, ui->le_config_brandName->text());
         text="Ajout d'une marque avec succès.";
     }
     else{
@@ -272,7 +366,7 @@ void MainWindow::on_btn_config_brand_save_clicked()
 
 void MainWindow::on_btn_config_brand_delete_clicked()
 {
-    sqlite->deleteCategoryBrand(BRAND, idBrand.at(ui->cb_config_brand->currentIndex()-1));
+    sqlite->deleteCBIF(sqlite_BRAND, idBrand.at(ui->cb_config_brand->currentIndex()-1));
 
     ui->btn_config_brand_delete->hide();
     ui->btn_config_brand_save->hide();
@@ -283,38 +377,4 @@ void MainWindow::on_btn_config_brand_delete_clicked()
     ui->statusBar->showMessage("Catégorie supprimée avec succès.", 3000);
 }
 
-void MainWindow::on_tw_itemsList_doubleClicked(const QModelIndex &index)
-{
-    ItemWindow *itemwindow = new ItemWindow(0,sqlite, index.sibling(index.row(),0).data().toInt() );
-    if(!itemwindow->exec())
-    {
-        itemwindow->setPage(PAGE_MATERIEL);
-        itemwindow->show();
-    }
-    delete itemwindow;
 
-    refreshDatabase();
-}
-
-void MainWindow::on_btn_materiel_delete_clicked()
-{
-    int reponse = QMessageBox::question(this, "Supression?", tr("Supprimer %1 ?")
-                                        .arg(ui->tw_itemsList->currentIndex().sibling(ui->tw_itemsList->currentIndex().row(),3).data().toString())
-                                        ,QMessageBox::Yes | QMessageBox::No);
-
-            if(reponse == QMessageBox::Yes){
-                QString Squery = "DELETE FROM Items WHERE id_item=:id_item";
-                QSqlQuery query;
-                query.prepare(Squery);
-                query.bindValue(":id_item", ui->tw_itemsList->currentIndex().sibling(ui->tw_itemsList->currentIndex().row(),0).data().toString());
-
-                if(!query.exec()) qDebug()<<"[SQLite] Erreur lors de la suppression d'un item.";
-            }
-     refreshDatabase();
-
-}
-
-void MainWindow::on_btn_materiel_modify_clicked()
-{
-    on_tw_itemsList_doubleClicked(ui->tw_itemsList->currentIndex());
-}

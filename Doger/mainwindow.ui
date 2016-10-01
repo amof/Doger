@@ -110,7 +110,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="main">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -343,7 +343,7 @@ color: rgb(0, 85, 255);</string>
            <enum>QTabWidget::Triangular</enum>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -417,7 +417,7 @@ color: rgb(0, 85, 255);</string>
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_22">
             <item>
-             <widget class="QTableWidget" name="tw_alimentation">
+             <widget class="QTableView" name="tw_alimentation">
               <property name="font">
                <font>
                 <pointsize>12</pointsize>
@@ -435,26 +435,6 @@ color: rgb(0, 85, 255);</string>
                 <height>50</height>
                </size>
               </property>
-              <column>
-               <property name="text">
-                <string>Référence</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Date péremption</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Quantité</string>
-               </property>
-              </column>
-              <column>
-               <property name="text">
-                <string>Poids</string>
-               </property>
-              </column>
              </widget>
             </item>
             <item>
