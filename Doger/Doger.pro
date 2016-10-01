@@ -8,21 +8,21 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    listwindow.cpp \
     statisticswindow.cpp \
     sqlite.cpp \
-    itemwindow.cpp
+    itemwindow.cpp \
+    listwindow.cpp
 
 HEADERS  += mainwindow.h \
-    listwindow.h \
     statisticswindow.h \
     sqlite.h \
-    itemwindow.h
+    itemwindow.h \
+    listwindow.h
 
 FORMS    += mainwindow.ui \
-    listwindow.ui \
     statisticswindow.ui \
-    itemwindow.ui
+    itemwindow.ui \
+    listwindow.ui
 
 RESOURCES += \
     ressources.qrc
