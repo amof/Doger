@@ -5,6 +5,10 @@
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QSqlQuery>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QVector>
+#include <QDataStream>
 
 namespace Ui {
 class ListWindow;
@@ -22,8 +26,10 @@ private slots:
     void on_dockWidget_visibilityChanged(bool visible);
     void populatetw_Matos();
     QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third, const QString &forth);
-
+    bool eventFilter(QObject* obj, QEvent* event);
     void on_dockWidget_topLevelChanged(bool topLevel);
+    QVector<QString> decodeByteArray(QByteArray ba);
+    void dragEnterEvent(QDragEnterEvent *event) ;
 
 private:
     Ui::ListWindow *ui;

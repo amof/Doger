@@ -8,6 +8,10 @@ ListWindow::ListWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     populatetw_Matos();
+    ui->qw_backpack->setAcceptDrops(true);
+    ui->qw_backpack->installEventFilter(this);
+    ui->qw_self->setAcceptDrops(true);
+
 }
 
 ListWindow::~ListWindow()
@@ -59,7 +63,7 @@ void ListWindow::populatetw_Matos()
     m->setHeaderData(1, Qt::Horizontal, tr("Modèle"));
     m->setHeaderData(2, Qt::Horizontal, tr("Poids"));
     ui->tw_matos->setModel(m);
-    ui->tw_matos->hideColumn(3);
+    //ui->tw_matos->hideColumn(3);
 
     for(int i=0;i++;i<m->columnCount()){
         ui->tw_matos->resizeColumnToContents(i);
@@ -90,4 +94,50 @@ void ListWindow::on_dockWidget_topLevelChanged(bool topLevel)
     }else{
         ui->dockWidget->setMaximumWidth(300);
     }
+}
+
+bool ListWindow::eventFilter(QObject* obj, QEvent* event){
+
+    if (obj == ui->qw_backpack) {
+            if (event->type() == QEvent::DragEnter) {
+                QDragEnterEvent* ev = (QDragEnterEvent*)event;
+                if(ev->source()==ui->tw_matos){
+                     ev->acceptProposedAction();
+                }
+
+            }
+            else if (event->type() == QEvent::Drop) {
+                QDropEvent* ev = (QDropEvent*)event;
+                ev->setDropAction(Qt::CopyAction);
+                ev->accept();
+                QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
+                QVector<QString> qv = decodeByteArray(ba);
+                qDebug()<<qv.at(3);
+        }
+    }
+}
+
+QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
+    QVector<QString> data;
+
+    QDataStream *ds = new QDataStream(ba);
+
+    while(!ds->atEnd()){
+        int row, col;
+        QMap<int,  QVariant> roleDataMap;
+        *ds >> row >> col >> roleDataMap;
+        //qDebug()<<QString::number(row)<<QString::number(col)<<roleDataMap<<roleDataMap[0].toString();
+        data.append(roleDataMap[0].toString());
+    }
+
+    return data;
+}
+
+void ListWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    qDebug()<<"hello";
+
+        event->setDropAction(Qt::MoveAction);
+        event->accept();
+
 }
