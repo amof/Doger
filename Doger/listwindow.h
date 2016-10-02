@@ -9,6 +9,7 @@
 #include <QMimeData>
 #include <QVector>
 #include <QDataStream>
+#include <QTreeWidgetItem>
 
 namespace Ui {
 class ListWindow;
@@ -29,10 +30,11 @@ private slots:
     bool eventFilter(QObject* obj, QEvent* event);
     void on_dockWidget_topLevelChanged(bool topLevel);
     QVector<QString> decodeByteArray(QByteArray ba);
-    void dragEnterEvent(QDragEnterEvent *event) ;
+    void insertItemInQTree(QVector<QString> vector);
 
 private:
     Ui::ListWindow *ui;
+    enum qtableview{brand, reference, weight, id};
 };
 
 #endif // LISTWINDOW_H

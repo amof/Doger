@@ -11,6 +11,13 @@ ListWindow::ListWindow(QWidget *parent) :
     ui->qw_backpack->setAcceptDrops(true);
     ui->qw_backpack->installEventFilter(this);
     ui->qw_self->setAcceptDrops(true);
+    ui->tw_list->setColumnCount(5);
+    QStringList headerLabels;
+    headerLabels.push_back(tr("Marque"));
+    headerLabels.push_back(tr("Modèle"));
+    headerLabels.push_back(tr("Poids"));
+    headerLabels.push_back(tr("Quantité"));
+    ui->tw_list->setHeaderLabels(headerLabels);
 
 }
 
@@ -111,8 +118,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                 ev->setDropAction(Qt::CopyAction);
                 ev->accept();
                 QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
-                QVector<QString> qv = decodeByteArray(ba);
-                qDebug()<<qv.at(3);
+                insertItemInQTree(decodeByteArray(ba));
         }
     }
 }
@@ -133,11 +139,46 @@ QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
     return data;
 }
 
-void ListWindow::dragEnterEvent(QDragEnterEvent *event)
-{
-    qDebug()<<"hello";
+void ListWindow::insertItemInQTree(QVector<QString> vector){
+    QString qry="SELECT Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity FROM Brands, Categories INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand WHERE Items.id_item=:id_item";
+    QSqlQuery query;
+    query.prepare(qry);
+    query.bindValue(":id_item", vector[qtableview(id)]);
+    query.exec();
+    query.next();
 
-        event->setDropAction(Qt::MoveAction);
-        event->accept();
+    //Child Search
+    QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(vector[qtableview(id)], Qt::MatchExactly|Qt::MatchRecursive,4);
+    QTreeWidgetItem *child = new QTreeWidgetItem();
+
+    if(childSearch.isEmpty()){
+        child->setText(0,query.value(1).toString());
+        child->setText(1,query.value(2).toString());
+        child->setText(2,query.value(3).toString());
+        child->setText(3,query.value(4).toString());
+        child->setText(4,vector[qtableview(id)]);
+    }else{
+        child = childSearch[0];
+        int weight = child->text(2).toInt() + query.value(3).toDouble();
+        int quantity = child->text(3).toInt() + 1;
+        child->setText(2,QString::number(weight));
+        child->setText(3,QString::number(quantity));
+
+    }
+
+    // Root Search
+    QList<QTreeWidgetItem*> rootSearch = ui->tw_list->findItems(query.value(0).toString(), Qt::MatchExactly);
+
+    // Add root/child
+    if(rootSearch.isEmpty()){
+        QTreeWidgetItem *root = new QTreeWidgetItem();
+        root->setText(0, query.value(0).toString());
+        ui->tw_list->addTopLevelItem(root);
+        root->addChild(child);
+    }else{
+        rootSearch[0]->addChild(child);
+    }
+
+
 
 }

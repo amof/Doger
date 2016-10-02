@@ -219,7 +219,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QTableView" name="tableView">
+      <widget class="QTreeWidget" name="tw_list">
+       <property name="font">
+        <font>
+         <pointsize>12</pointsize>
+        </font>
+       </property>
        <property name="editTriggers">
         <set>QAbstractItemView::NoEditTriggers</set>
        </property>
@@ -232,6 +237,11 @@
        <property name="alternatingRowColors">
         <bool>false</bool>
        </property>
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
       </widget>
      </item>
      <item>
@@ -263,7 +273,7 @@
            <enum>QFrame::StyledPanel</enum>
           </property>
           <property name="frameShadow">
-           <enum>QFrame::Raised</enum>
+           <enum>QFrame::Plain</enum>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
