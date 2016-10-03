@@ -11,11 +11,13 @@ ListWindow::ListWindow(QWidget *parent) :
     ui->qw_backpack->setAcceptDrops(true);
     ui->qw_backpack->installEventFilter(this);
     ui->qw_self->setAcceptDrops(true);
-    ui->tw_list->setColumnCount(5);
+    ui->qw_self->installEventFilter(this);
+    ui->tw_list->setColumnCount(6); // TODO : update automatically
     QStringList headerLabels;
     headerLabels.push_back(tr("Marque"));
     headerLabels.push_back(tr("Modèle"));
-    headerLabels.push_back(tr("Poids"));
+    headerLabels.push_back(tr("Poids Sac"));
+    headerLabels.push_back(tr("Poids Soi"));
     headerLabels.push_back(tr("Quantité"));
     ui->tw_list->setHeaderLabels(headerLabels);
 
@@ -69,11 +71,11 @@ void ListWindow::populatetw_Matos()
     m->setHeaderData(0, Qt::Horizontal, tr("Marque"));
     m->setHeaderData(1, Qt::Horizontal, tr("Modèle"));
     m->setHeaderData(2, Qt::Horizontal, tr("Poids"));
-    ui->tw_matos->setModel(m);
+    ui->tw_items->setModel(m);
     //ui->tw_matos->hideColumn(3);
 
     for(int i=0;i++;i<m->columnCount()){
-        ui->tw_matos->resizeColumnToContents(i);
+        ui->tw_items->resizeColumnToContents(i);
     }
 
 }
@@ -105,10 +107,10 @@ void ListWindow::on_dockWidget_topLevelChanged(bool topLevel)
 
 bool ListWindow::eventFilter(QObject* obj, QEvent* event){
 
-    if (obj == ui->qw_backpack) {
+    if (obj == ui->qw_backpack || obj==ui->qw_self) {
             if (event->type() == QEvent::DragEnter) {
                 QDragEnterEvent* ev = (QDragEnterEvent*)event;
-                if(ev->source()==ui->tw_matos){
+                if(ev->source()==ui->tw_items){
                      ev->acceptProposedAction();
                 }
 
@@ -118,7 +120,10 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                 ev->setDropAction(Qt::CopyAction);
                 ev->accept();
                 QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
-                insertItemInQTree(decodeByteArray(ba));
+
+                if(obj==ui->qw_backpack){insertItemInQTree(decodeByteArray(ba), qListWidget(l_weightBackpack));}
+                else if(obj==ui->qw_self){ insertItemInQTree(decodeByteArray(ba), qListWidget(l_weightSelf));}
+
         }
     }
 }
@@ -139,30 +144,37 @@ QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
     return data;
 }
 
-void ListWindow::insertItemInQTree(QVector<QString> vector){
+void ListWindow::insertItemInQTree(QVector<QString> vectorFromItems, qListWidget place){
     QString qry="SELECT Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity FROM Brands, Categories INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand WHERE Items.id_item=:id_item";
     QSqlQuery query;
     query.prepare(qry);
-    query.bindValue(":id_item", vector[qtableview(id)]);
+    query.bindValue(":id_item", vectorFromItems[qItemsView(i_id)]);
     query.exec();
     query.next();
 
     //Child Search
-    QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(vector[qtableview(id)], Qt::MatchExactly|Qt::MatchRecursive,4);
+    QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(vectorFromItems[qItemsView(i_id)], Qt::MatchExactly|Qt::MatchRecursive,qListWidget(l_id));
     QTreeWidgetItem *child = new QTreeWidgetItem();
 
     if(childSearch.isEmpty()){
-        child->setText(0,query.value(1).toString());
-        child->setText(1,query.value(2).toString());
-        child->setText(2,query.value(3).toString());
-        child->setText(3,query.value(4).toString());
-        child->setText(4,vector[qtableview(id)]);
-    }else{
+        child->setText(qListWidget(l_brand),query.value(1).toString());
+        child->setText(qListWidget(l_reference),query.value(2).toString());
+
+        child->setText(qListWidget(place),query.value(3).toString());
+
+        child->setText(qListWidget(l_quantity),"1");
+
+        child->setText(qListWidget(l_id),vectorFromItems[qItemsView(i_id)]);
+
+    }else if(!childSearch.isEmpty() && childSearch[0]->text(qItemsView(place))!=""){
         child = childSearch[0];
-        int weight = child->text(2).toInt() + query.value(3).toDouble();
-        int quantity = child->text(3).toInt() + 1;
-        child->setText(2,QString::number(weight));
-        child->setText(3,QString::number(quantity));
+
+        int quantity = child->text(qListWidget(l_quantity)).toInt() + 1;
+        child->setText(qListWidget(l_quantity),QString::number(quantity));
+
+        int weight = child->text(qListWidget(place)).toDouble() + query.value(3).toDouble();
+        child->setText(qListWidget(place),QString::number(weight));
+
 
     }
 
@@ -173,10 +185,18 @@ void ListWindow::insertItemInQTree(QVector<QString> vector){
     if(rootSearch.isEmpty()){
         QTreeWidgetItem *root = new QTreeWidgetItem();
         root->setText(0, query.value(0).toString());
+        root->setText(qListWidget(place), query.value(3).toString());
         ui->tw_list->addTopLevelItem(root);
         root->addChild(child);
     }else{
         rootSearch[0]->addChild(child);
+        int weight = rootSearch[0]->text(qListWidget(place)).toDouble() + query.value(3).toDouble();
+        rootSearch[0]->setText(qListWidget(place),QString::number(weight));
+    }
+
+    ui->tw_list->expandAll();
+    for(int i=0;i<ui->tw_list->columnCount();i++){
+        ui->tw_list->resizeColumnToContents(i);
     }
 
 
