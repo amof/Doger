@@ -229,7 +229,7 @@
         <set>QAbstractItemView::NoEditTriggers</set>
        </property>
        <property name="dragDropMode">
-        <enum>QAbstractItemView::DropOnly</enum>
+        <enum>QAbstractItemView::DragOnly</enum>
        </property>
        <property name="defaultDropAction">
         <enum>Qt::LinkAction</enum>

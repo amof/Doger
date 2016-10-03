@@ -26,8 +26,8 @@ public:
 private:
     Ui::ListWindow *ui;
     enum qItemsView{i_brand, i_reference, i_weight, i_id};
-    enum qListWidget{l_brand, l_reference, l_weightBackpack, l_weightSelf, l_quantity, l_id};
-
+    enum qListWidget{l_brand, l_reference, l_weightBackpack, l_weightSelf, l_quantity, l_id, l_weight};
+    #define length_qListWidget 7
 private slots:
     void on_dockWidget_visibilityChanged(bool visible);
     void populatetw_Matos();
@@ -36,6 +36,7 @@ private slots:
     void on_dockWidget_topLevelChanged(bool topLevel);
     QVector<QString> decodeByteArray(QByteArray ba);
     void insertItemInQTree(QVector<QString> vectorFromItems, qListWidget place);
+    void removeItemInQTree(QVector<QString> vectorFromList);
 
 };
 
