@@ -11,6 +11,8 @@ MainWindow::MainWindow(QWidget *parent) :
     filter = new QSortFilterProxyModel();
     modelFood = new QSqlQueryModel();
     filterFood = new QSortFilterProxyModel();
+    modelList = new QSqlQueryModel();
+    modelListDetail = new QSqlQueryModel();
 
     ui->stackedWidget->setCurrentIndex(0);
     ui->frame_title->hide();
@@ -128,7 +130,20 @@ void MainWindow::refreshDatabase(){
     ui->tw_alimentation->setSortingEnabled(true);
     ui->tw_alimentation->setModel(filterFood);
     ui->tw_alimentation->hideColumn(0);
-    ui->tw_itemsList->resizeColumnsToContents();
+    ui->tw_alimentation->resizeColumnsToContents();
+
+    QString reqList="SELECT Lists.id_list, Lists.name, Lists.weightBackpack, Lists.weightSelf FROM Lists";
+    modelList->setQuery(reqList);
+    modelList->setHeaderData(1, Qt::Horizontal, tr("Nom"));
+
+    ui->tv_list->setSortingEnabled(true);
+    ui->tv_list->setModel(modelList);
+    ui->tv_list->hideColumn(0);
+    ui->tv_list->hideColumn(2);
+    ui->tv_list->hideColumn(3);
+    ui->tv_list->resizeColumnsToContents();
+
+
 }
 
 /************************************************************************/
@@ -254,7 +269,7 @@ void MainWindow::deleteQuestion(QString name, int toDelete, int index){
 
 void MainWindow::on_btn_list_add_clicked()
 {
-    ListWindow *listwindow = new ListWindow();
+    ListWindow *listwindow = new ListWindow(0, sqlite);
 
     if(!listwindow->exec()){
         listwindow->show();
@@ -378,3 +393,17 @@ void MainWindow::on_btn_config_brand_delete_clicked()
 }
 
 
+
+void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
+{
+    QString reqListDetail="SELECT Categories.name, Brands.name, Items.reference, Items.weight FROM Brands, Categories INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand, Lists INNER JOIN ItemsLists ON ItemsLists.id_item = Items.id_item AND ItemsLists.id_list = Lists.id_list WHERE Lists.id_list=";
+    reqListDetail+=index.sibling(index.row(),0).data().toString();
+    modelListDetail->setQuery(reqListDetail);
+    modelListDetail->setHeaderData(1, Qt::Horizontal, tr("Marque"));
+
+    ui->tv_listDetail->setSortingEnabled(true);
+    ui->tv_listDetail->setModel(modelListDetail);
+
+    ui->le_list_weightBackpack->setText(index.sibling(index.row(),2).data().toString());
+    ui->le_list_weightSelf->setText(index.sibling(index.row(),3).data().toString());
+}

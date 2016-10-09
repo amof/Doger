@@ -70,6 +70,8 @@ private slots:
 
     void on_btn_alimentation_delete_clicked();
 
+    void on_tv_list_doubleClicked(const QModelIndex &index);
+
 public:
 
 
@@ -82,6 +84,8 @@ private:
     QSortFilterProxyModel *filter;
     QSqlQueryModel *modelFood;
     QSortFilterProxyModel *filterFood;
+    QSqlQueryModel *modelList;
+    QSqlQueryModel *modelListDetail;
 };
 
 #endif // MAINWINDOW_H
