@@ -2,11 +2,14 @@
 #include "ui_listwindow.h"
 #include <QDebug>
 
-ListWindow::ListWindow(QWidget *parent) :
+ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer) :
     QDialog(parent),
     ui(new Ui::ListWindow)
 {
     ui->setupUi(this);
+
+    sqlite = sqlitepointer;
+
     populatetw_Matos();
     ui->qw_backpack->setAcceptDrops(true);
     ui->qw_backpack->installEventFilter(this);
@@ -27,6 +30,11 @@ ListWindow::ListWindow(QWidget *parent) :
 
     ui->lbl_backpack->setPixmap(QPixmap(":/images/backpack.png").scaled(100,100,Qt::KeepAspectRatio));
     ui->lbl_self->setPixmap(QPixmap(":/images/self.png").scaled(100,100,Qt::KeepAspectRatio));
+
+    ui->de_hikeDate->setDate(QDate::currentDate());
+    ui->de_listDate->setDate(QDate::currentDate());
+
+    numberOfCategoriesInList=0;
 }
 
 ListWindow::~ListWindow()
@@ -219,6 +227,7 @@ void ListWindow::insertItemInQTree(QVector<QString> vectorFromItems, qListWidget
             root->setText(qListWidget(place), query.value(3).toString());
             ui->tw_list->addTopLevelItem(root);
             root->addChild(child);
+            numberOfCategoriesInList++;
         }else if(!rootSearch.isEmpty() && child->text(qItemsView(place))!=""){
             rootSearch[0]->addChild(child);
             int weight = rootSearch[0]->text(qListWidget(place)).toDouble() + query.value(3).toDouble();
@@ -229,6 +238,16 @@ void ListWindow::insertItemInQTree(QVector<QString> vectorFromItems, qListWidget
         for(int i=0;i<ui->tw_list->columnCount();i++){
             ui->tw_list->resizeColumnToContents(i);
         }
+
+        // Display total weight value
+        if(qListWidget(place)==qListWidget(l_weightBackpack)){
+            ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+query.value(3).toDouble()));
+        }else if(qListWidget(place)==qListWidget(l_weightSelf)){
+            ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+query.value(3).toDouble()));
+
+        }
+
+
     }
 
 }
@@ -247,6 +266,7 @@ void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
         childSearch[0]->setText(qListWidget(l_weightBackpack),QString::number(weightBackpack-weight));
         root->setText(qListWidget(l_weightBackpack),QString::number(totalWeightBackpack-weight));
 
+
     }else if(childSearch[0]->text(qListWidget(l_weightBackpack)).isEmpty()){
         int weightSelf = childSearch[0]->text(qListWidget(l_weightSelf)).toDouble();
         int totalWeightSelf = root->text(qListWidget(l_weightSelf)).toDouble();
@@ -259,10 +279,71 @@ void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
         childSearch[0]->setText(qListWidget(l_quantity),QString::number(quantity-1) );
     }else if(quantity==1){
         root->removeChild(childSearch[0]);
+        if(numberOfCategoriesInList>0)numberOfCategoriesInList++;
     }
 
     // If there are no more children delete the root
     if(root->childCount()==0){
         delete ui->tw_list->takeTopLevelItem(ui->tw_list->indexOfTopLevelItem(root));
+    }
+
+    // Display total weight value
+    if(childSearch[0]->text(qListWidget(l_weightSelf)).isEmpty()){
+        ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()-weight));
+    }else if(childSearch[0]->text(qListWidget(l_weightBackpack)).isEmpty()){
+        ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()-weight));
+
+    }
+}
+
+void ListWindow::on_btn_saveList_clicked()
+{
+    if(ui->le_listName->text()!=""){
+        QString qry="INSERT INTO Lists VALUES (NULL , :name, :hikeDate, :creationDate, :id_foodPlan, :weightBackpack, :weightSelf, :note)";
+        QSqlQuery query;
+        query.prepare(qry);
+        query.bindValue(":name",ui->le_listName->text());
+        query.bindValue(":hikeDate",ui->de_hikeDate->text());
+        query.bindValue(":creationDate",ui->de_listDate->text());
+        query.bindValue(":id_foodPlan","");
+        query.bindValue(":weightBackpack",ui->lbl_weightBackpack->text().toDouble());
+        query.bindValue(":weightSelf",ui->lbl_weightSelf->text().toDouble());
+        query.bindValue(":note",ui->te_note->toPlainText());
+
+        if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'une liste "<<query.lastError();
+
+        int id_list = query.lastInsertId().toInt();
+
+        if(id_list!=0){
+            qry="INSERT INTO ItemsLists VALUES (:id_item , :id_list, :quantity, :backpackOrSelf)";
+
+            QTreeWidgetItem *item = new QTreeWidgetItem;
+            for(int i=0;i<numberOfCategoriesInList;i++){
+                item = ui->tw_list->topLevelItem(i);
+                QString backpackOrSelf="";
+                for(int j=0;j<item->childCount();j++){
+                    if(item->child(j)->text(qListWidget(l_weightBackpack)).isEmpty()){
+                        backpackOrSelf="self";
+                    }
+                    else if(item->child(j)->text(qListWidget(l_weightSelf)).isEmpty()){
+                        backpackOrSelf="backpack";
+                    }
+
+                    query.clear();
+                    query.prepare(qry);
+                    query.bindValue(":id_item",item->child(j)->text(qListWidget(l_id)).toInt());
+                    query.bindValue(":id_list",id_list);
+                    query.bindValue(":quantity",item->child(j)->text(qListWidget(l_quantity)).toInt());
+                    query.bindValue(":backpackOrSelf",backpackOrSelf);
+
+                    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un item de liste "<<query.lastError();
+                }
+            }
+
+            item = NULL;
+            delete item;
+        }
+
+
     }
 }
