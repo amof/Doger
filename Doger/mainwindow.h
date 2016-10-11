@@ -7,6 +7,12 @@
 #include "itemwindow.h"
 #include "listwindow.h"
 #include "statisticswindow.h"
+#include <QtCharts/QChartView>
+#include <QtCharts/QBarSeries>
+#include <QtCharts/QBarSet>
+#include <QtCharts/QLegend>
+#include <QtCharts/QBarCategoryAxis>
+#include <QtCharts/QHorizontalPercentBarSeries>
 
 namespace Ui {
 class MainWindow;
@@ -27,6 +33,7 @@ private slots:
     void initActionsConnections();
     void displayItemWindow(quint8 page, int index);
     void deleteQuestion(QString name, int toDelete, int index);
+    void fillListChart(int id_list);
     void on_btn_materiel_clicked();
 
     void on_btn_liste_clicked();
