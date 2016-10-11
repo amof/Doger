@@ -315,18 +315,22 @@ void ListWindow::on_btn_saveList_clicked()
         int id_list = query.lastInsertId().toInt();
 
         if(id_list!=0){
-            qry="INSERT INTO ItemsLists VALUES (:id_item , :id_list, :quantity, :backpackOrSelf)";
+            qry="INSERT INTO ItemsLists VALUES (:id_item , :id_list, :quantity, :totalWeight, :backpackOrSelf)";
 
             QTreeWidgetItem *item = new QTreeWidgetItem;
             for(int i=0;i<numberOfCategoriesInList;i++){
                 item = ui->tw_list->topLevelItem(i);
                 QString backpackOrSelf="";
+                double weight=0;
+
                 for(int j=0;j<item->childCount();j++){
                     if(item->child(j)->text(qListWidget(l_weightBackpack)).isEmpty()){
                         backpackOrSelf="self";
+                        weight = item->child(j)->text(qListWidget(l_weightSelf)).toDouble();
                     }
                     else if(item->child(j)->text(qListWidget(l_weightSelf)).isEmpty()){
                         backpackOrSelf="backpack";
+                        weight = item->child(j)->text(qListWidget(l_weightBackpack)).toDouble();
                     }
 
                     query.clear();
@@ -334,6 +338,7 @@ void ListWindow::on_btn_saveList_clicked()
                     query.bindValue(":id_item",item->child(j)->text(qListWidget(l_id)).toInt());
                     query.bindValue(":id_list",id_list);
                     query.bindValue(":quantity",item->child(j)->text(qListWidget(l_quantity)).toInt());
+                    query.bindValue(":totalWeight",weight);
                     query.bindValue(":backpackOrSelf",backpackOrSelf);
 
                     if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un item de liste "<<query.lastError();
