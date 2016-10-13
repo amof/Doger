@@ -13,6 +13,7 @@
 #include <QtCharts/QLegend>
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QHorizontalPercentBarSeries>
+#include <QStyledItemDelegate>
 
 namespace Ui {
 class MainWindow;
@@ -79,6 +80,8 @@ private slots:
 
     void on_tv_list_doubleClicked(const QModelIndex &index);
 
+    void on_btn_list_delete_clicked();
+
 public:
 
 
@@ -93,6 +96,8 @@ private:
     QSortFilterProxyModel *filterFood;
     QSqlQueryModel *modelList;
     QSqlQueryModel *modelListDetail;
+    int id_list;
 };
+
 
 #endif // MAINWINDOW_H

@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     modelList = new QSqlQueryModel();
     modelListDetail = new QSqlQueryModel();
 
+    id_list=0;
+
     ui->stackedWidget->setCurrentIndex(0);
     ui->frame_title->hide();
     ui->btn_config_categorie_delete->hide();
@@ -27,6 +29,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->lbl_backpack->setPixmap(QPixmap(":/images/backpack.png").scaled(75,75,Qt::KeepAspectRatio));
     ui->lbl_self->setPixmap(QPixmap(":/images/self.png").scaled(75,75,Qt::KeepAspectRatio));
+
+    ui->tw_listDetail->setColumnCount(6);
+    ui->tw_listDetail->setHorizontalHeaderItem(0, new QTableWidgetItem("Catégorie"));
+    ui->tw_listDetail->setHorizontalHeaderItem(1, new QTableWidgetItem("Marque"));
+    ui->tw_listDetail->setHorizontalHeaderItem(2, new QTableWidgetItem("Référence"));
+    ui->tw_listDetail->setHorizontalHeaderItem(3, new QTableWidgetItem("Poids"));
+    ui->tw_listDetail->setHorizontalHeaderItem(4, new QTableWidgetItem("Quantité"));
+    ui->tw_listDetail->setHorizontalHeaderItem(5, new QTableWidgetItem("SAD/Soi"));
 
     loadConfig();
     loadDatabase();
@@ -125,7 +135,7 @@ void MainWindow::refreshDatabase(){
     modelFood->setHeaderData(1, Qt::Horizontal, tr("Marque"));
     modelFood->setHeaderData(2, Qt::Horizontal, tr("Modèle"));
     modelFood->setHeaderData(3, Qt::Horizontal, tr("Quantité"));
-    modelFood->setHeaderData(4, Qt::Horizontal, tr("Date d'expriation"));
+    modelFood->setHeaderData(4, Qt::Horizontal, tr("Date d'expiration"));
     modelFood->setHeaderData(5, Qt::Horizontal, tr("Energie[kcal]"));
 
     filterFood->setSourceModel(modelFood);
@@ -260,7 +270,10 @@ void MainWindow::deleteQuestion(QString name, int toDelete, int index){
     int reponse = QMessageBox::question(this, "Supression?", tr("Supprimer %1 ?").arg(name),QMessageBox::Yes | QMessageBox::No);
 
     if(reponse == QMessageBox::Yes){
-        sqlite->deleteCBIF(toDelete, index);
+        sqlite->deleteRecord(toDelete, index);
+        if(toDelete==sqlite_ITEM){
+            sqlite->deleteRecord(sqlite_ITEMLIST, index);
+        }
         refreshDatabase();
     }
 }
@@ -268,6 +281,108 @@ void MainWindow::deleteQuestion(QString name, int toDelete, int index){
 /************************************************************************/
 /* Listes                                                               */
 /************************************************************************/
+
+void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
+{
+
+    id_list = index.sibling(index.row(),0).data().toInt();
+    ui->lbl_weightBackpack->setText(index.sibling(index.row(),2).data().toString());
+    ui->lbl_weightSelf->setText(index.sibling(index.row(),3).data().toString());
+    ui->lbl_weightBackpack_total->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+ui->lbl_weightBackpack_food->text().toDouble()));
+    ui->gb_listDetail->setTitle("Liste sélectionnée : "+index.sibling(index.row(),1).data().toString());
+
+    fillListChart(index.sibling(index.row(),0).data().toInt());
+
+    for(int i=0;i<ui->tw_listDetail->rowCount();i++){
+        ui->tw_listDetail->removeRow(0);
+    }
+
+    QString reqListDetail="SELECT Categories.name, Brands.name, Items.reference, ItemsLists.totalWeight, ItemsLists.quantity, ItemsLists.backpackOrSelf FROM Brands INNER JOIN Categories ON '' = '' INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand, Lists INNER JOIN ItemsLists ON ItemsLists.id_item = Items.id_item AND ItemsLists.id_list = Lists.id_list WHERE Lists.id_list=:id_list ORDER BY Categories.name DESC, Brands.name DESC, Items.reference DESC ";
+    QSqlQuery query;
+    query.prepare(reqListDetail);
+    query.bindValue(":id_list", index.sibling(index.row(),0).data().toInt());
+    query.exec();
+
+
+    while(query.next()){
+        ui->tw_listDetail->insertRow(0);
+        ui->tw_listDetail->setItem(0, 0, new QTableWidgetItem(query.value(0).toString()));
+        ui->tw_listDetail->setItem(0, 1, new QTableWidgetItem(query.value(1).toString()));
+        ui->tw_listDetail->setItem(0, 2, new QTableWidgetItem(query.value(2).toString()));
+        ui->tw_listDetail->setItem(0, 3, new QTableWidgetItem());
+        ui->tw_listDetail->item(0,3)->setData(0,query.value(3).toDouble());
+        ui->tw_listDetail->setItem(0, 4, new QTableWidgetItem());
+        ui->tw_listDetail->item(0,4)->setData(0,query.value(4).toInt());
+
+        ui->tw_listDetail->setItem(0, 5, new QTableWidgetItem());
+        if(query.value(5)=="self"){
+            //ui->tw_listDetail->item(0, 0)->setBackground(Qt::red);
+            ui->tw_listDetail->item(0, 5)->setIcon(QIcon(QPixmap(":/images/self.png")));
+            ui->tw_listDetail->item(0,5)->setData(Qt::EditRole, QVariant("Soi"));
+        }else if(query.value(5)=="backpack"){
+             ui->tw_listDetail->item(0, 5)->setIcon(QIcon(QPixmap(":/images/backpack.png")));
+             ui->tw_listDetail->item(0,5)->setData(Qt::EditRole, QVariant("SAD"));
+        }
+    }
+
+    ui->tw_listDetail->resizeColumnsToContents();
+
+}
+
+void MainWindow::fillListChart(int id_list){
+
+    QString qry="SELECT Categories.name, Sum(ItemsLists.totalWeight), Lists.weightBackpack, ItemsLists.backpackOrSelf FROM Lists, Categories INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON Items.id_category = Categories.id_category AND ItemsLists.id_item = Items.id_item WHERE Lists.id_list = :id_list GROUP BY Categories.name, ItemsLists.backpackOrSelf";
+    QSqlQuery query;
+    query.prepare(qry);
+    query.bindValue(":id_list", id_list);
+    query.exec();
+
+    QHorizontalPercentBarSeries *series = new QHorizontalPercentBarSeries();
+    QBarSet *previousSet = new QBarSet("");
+    QString previousLabel="";
+    while(query.next()){
+        qreal value = query.value(1).toDouble()/query.value(2).toDouble();
+
+        if(previousLabel!=query.value(0).toString()){
+            QBarSet *set = new QBarSet("");
+            series->append(set);
+            set->setLabel(query.value(0).toString());//query.value(0).toString()+" ("+QString::number(int(value*100))+"%)"
+            if(query.value(3).toString()=="backpack"){
+                set->append(value);
+            }else if(query.value(3).toString()=="self"){
+                set->append(0);
+                set->append(value);
+            }
+
+            previousSet=set;
+            previousLabel=query.value(0).toString();
+
+        }else if(previousLabel==query.value(0).toString()){
+            previousSet->append(value);
+        }
+
+    }
+
+    QStringList categories;
+    categories << "SAD"<<"Soi";
+    QBarCategoryAxis *axis = new QBarCategoryAxis();
+    axis->append(categories);
+
+    QChart *chart = new QChart();
+    chart->addSeries(series);
+    chart->setAnimationOptions(QChart::SeriesAnimations);
+    chart->createDefaultAxes();
+    chart->legend()->setAlignment(Qt::AlignBottom);
+    chart->legend()->setFont(QFont("Segoe UI", 10));
+    chart->setAxisY(axis, series);
+
+    chart->setTitle("Répartition du matériel");
+    chart->setTitleFont(QFont("Segoe UI", 14));
+
+    ui->chartview->setChart(chart);
+    ui->chartview->setRenderHint(QPainter::Antialiasing);
+}
+
 
 void MainWindow::on_btn_list_add_clicked()
 {
@@ -280,14 +395,27 @@ void MainWindow::on_btn_list_add_clicked()
 
 }
 
+
+void MainWindow::on_btn_list_delete_clicked()
+{
+
+    deleteQuestion(ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),1).data().toString(),
+                   sqlite_LIST,
+                   ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
+
+}
+
 void MainWindow::on_btn_matos_stats_clicked()
 {
-    /*Statisticswindow *statisticswindow;
+    if(id_list!=0){
+        StatisticsWindow *statisticswindow = new StatisticsWindow(0,ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
 
-    if(!statisticswindow->exec()){
-        statisticswindow->show();
+        if(!statisticswindow->exec()){
+            statisticswindow->show();
+        }
+        delete statisticswindow;
     }
-    delete statisticswindow;*/
+
 }
 
 /************************************************************************/
@@ -349,7 +477,7 @@ void MainWindow::on_btn_config_categorie_save_clicked()
 
 void MainWindow::on_btn_config_categorie_delete_clicked()
 {
-    sqlite->deleteCBIF(sqlite_CATEGORY, idCategories.at(ui->cb_config_categories->currentIndex()-1));
+    sqlite->deleteRecord(sqlite_CATEGORY, idCategories.at(ui->cb_config_categories->currentIndex()-1));
 
     ui->btn_config_categorie_delete->hide();
     ui->btn_config_categorie_save->hide();
@@ -383,7 +511,7 @@ void MainWindow::on_btn_config_brand_save_clicked()
 
 void MainWindow::on_btn_config_brand_delete_clicked()
 {
-    sqlite->deleteCBIF(sqlite_BRAND, idBrand.at(ui->cb_config_brand->currentIndex()-1));
+    sqlite->deleteRecord(sqlite_BRAND, idBrand.at(ui->cb_config_brand->currentIndex()-1));
 
     ui->btn_config_brand_delete->hide();
     ui->btn_config_brand_save->hide();
@@ -392,84 +520,4 @@ void MainWindow::on_btn_config_brand_delete_clicked()
     refreshDatabase();
 
     ui->statusBar->showMessage("Catégorie supprimée avec succès.", 3000);
-}
-
-
-
-void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
-{
-    QString reqListDetail="SELECT Categories.name, Brands.name, Items.reference, Items.weight, ItemsLists.backpackOrSelf FROM Brands, Categories INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand, Lists INNER JOIN ItemsLists ON ItemsLists.id_item = Items.id_item AND ItemsLists.id_list = Lists.id_list WHERE Lists.id_list=";
-    reqListDetail+=index.sibling(index.row(),0).data().toString();
-    modelListDetail->setQuery(reqListDetail);
-    modelListDetail->setHeaderData(1, Qt::Horizontal, tr("Marque"));
-
-    ui->tv_listDetail->setSortingEnabled(true);
-    ui->tv_listDetail->setModel(modelListDetail);
-
-    ui->lbl_weightBackpack->setText(index.sibling(index.row(),2).data().toString());
-    ui->lbl_weightSelf->setText(index.sibling(index.row(),3).data().toString());
-    ui->gb_listDetail->setTitle("Liste sélectionnée : "+index.sibling(index.row(),1).data().toString());
-
-    fillListChart(index.sibling(index.row(),0).data().toInt());
-
-    for(int i=0;i<ui->tv_listDetail->model()->rowCount();i++){
-        if(ui->tv_listDetail->model()->index(i,4).data().toString()=="self"){
-            qDebug()<<"yes";
-        }
-    }
-
-}
-
-void MainWindow::fillListChart(int id_list){
-
-    QString qry="SELECT Categories.name, Sum(ItemsLists.totalWeight), Lists.weightBackpack, ItemsLists.backpackOrSelf FROM Lists, Categories INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON Items.id_category = Categories.id_category AND ItemsLists.id_item = Items.id_item WHERE Lists.id_list = :id_list GROUP BY Categories.name, ItemsLists.backpackOrSelf";
-    QSqlQuery query;
-    query.prepare(qry);
-    query.bindValue(":id_list", id_list);
-    query.exec();
-
-    QHorizontalPercentBarSeries *series = new QHorizontalPercentBarSeries();
-    QBarSet *previousSet = new QBarSet("");
-    QString previousLabel="";
-    while(query.next()){
-        qreal value = query.value(1).toDouble()/query.value(2).toDouble();
-
-        if(previousLabel!=query.value(0).toString()){
-            QBarSet *set = new QBarSet("");
-            series->append(set);
-            set->setLabel(query.value(0).toString());//query.value(0).toString()+" ("+QString::number(int(value*100))+"%)"
-            if(query.value(3).toString()=="backpack"){
-                set->append(value);
-            }else if(query.value(3).toString()=="self"){
-                set->append(0);
-                set->append(value);
-            }
-
-            previousSet=set;
-            previousLabel=query.value(0).toString();
-
-        }else if(previousLabel==query.value(0).toString()){
-            previousSet->append(value);
-        }
-
-    }
-
-    QStringList categories;
-    categories << "SAD"<<"Soi";
-    QBarCategoryAxis *axis = new QBarCategoryAxis();
-    axis->append(categories);
-
-    QChart *chart = new QChart();
-    chart->addSeries(series);
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->createDefaultAxes();
-    chart->legend()->setAlignment(Qt::AlignBottom);
-    chart->legend()->setFont(QFont("Segoe UI", 10));
-    chart->setAxisY(axis, series);
-
-    chart->setTitle("Répartition du matériel");
-    chart->setTitleFont(QFont("Segoe UI", 14));
-
-    ui->chartview->setChart(chart);
-    ui->chartview->setRenderHint(QPainter::Antialiasing);
 }
