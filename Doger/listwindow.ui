@@ -85,48 +85,44 @@
            </widget>
           </item>
           <item>
-           <widget class="QDateEdit" name="de_hikeDate"/>
+           <layout class="QHBoxLayout" name="horizontalLayout_8">
+            <item>
+             <widget class="QDateEdit" name="de_hikeDate"/>
+            </item>
+            <item>
+             <widget class="QLabel" name="label_30">
+              <property name="font">
+               <font>
+                <pointsize>12</pointsize>
+               </font>
+              </property>
+              <property name="text">
+               <string>Date de création :</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QDateEdit" name="de_listDate"/>
+            </item>
+           </layout>
           </item>
          </layout>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_12">
-          <item>
-           <widget class="QLabel" name="label_4">
-            <property name="text">
-             <string>Liste nourriture :</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label_30">
-            <property name="font">
-             <font>
-              <pointsize>12</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string>Date de création :</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-         </layout>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Liste nourriture :</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
         </item>
         <item>
-         <layout class="QVBoxLayout" name="verticalLayout_13">
-          <item>
-           <widget class="QComboBox" name="cb_food"/>
-          </item>
-          <item>
-           <widget class="QDateEdit" name="de_listDate"/>
-          </item>
-         </layout>
+         <widget class="QComboBox" name="cb_food"/>
         </item>
         <item>
          <spacer name="horizontalSpacer">
