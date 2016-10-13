@@ -2,6 +2,7 @@
 #define ITEMWINDOW_H
 
 #include <QDialog>
+#include <sqlite.h>
 #include <QImage>
 #include <QImageReader>
 #include <QImageWriter>
@@ -13,7 +14,7 @@
 #include <QString>
 #include <QLabel>
 #include <QVector>
-#include <sqlite.h>
+
 
 namespace Ui {
 class ItemWindow;
@@ -61,6 +62,8 @@ private slots:
     void on_btn_alim_newBrand_clicked();
 
     void on_cb_alim_brand_activated(int index);
+
+    void on_btn_item_saveClose_clicked();
 
 private:
     Ui::ItemWindow *ui;

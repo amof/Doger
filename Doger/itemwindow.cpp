@@ -203,58 +203,70 @@ void ItemWindow::on_btn_alim_deleteImage_clicked()
 
 void ItemWindow::on_btn_item_save_clicked()
 {
-    if(whatToDo==TO_INSERT&&ui->cb_item_brand->currentIndex()!=0){
-        QString Squery = "INSERT INTO Items VALUES (NULL , :id_category, :id_brand, :reference, :weight, :quantity, :volume, :dateOfAcquisition, :price, :desired, :url_manufacturer, :url_RL, :note)";
-        QSqlQuery query;
+    if(ui->cb_item_brand->currentIndex()!=0){
+        ItemStruct itemStruct ;
+        itemStruct.id_item=0;
+        itemStruct.id_category=idCategories.at(ui->cb_item_categorie->currentIndex());
+        itemStruct.id_brand=idBrand.at(ui->cb_item_brand->currentIndex()-1);
+        itemStruct.reference=ui->le_item_reference->text();
+        itemStruct.weight=ui->le_item_weight->text().toDouble();
+        itemStruct.quantity=ui->sb_item_quantity->text().toInt();
+        itemStruct.volume=ui->le_item_volume->text().toDouble();
+        itemStruct.dateOfAcquisition=ui->de_item_date->text();
+        itemStruct.price=ui->le_item_price->text().toDouble();
+        itemStruct.desired=ui->cb_item_desired->isChecked();
+        itemStruct.url_manufacturer=ui->le_item_url->text();
+        itemStruct.url_RL=ui->le_item_url_rl->text();
+        itemStruct.note=ui->te_item_note->toPlainText();
 
-        query.prepare(Squery);
-        query.bindValue(":id_category", idCategories.at(ui->cb_item_categorie->currentIndex()));
-        query.bindValue(":id_brand", idBrand.at(ui->cb_item_brand->currentIndex()-1));
-        query.bindValue(":reference", ui->le_item_reference->text());
-        query.bindValue(":weight", ui->le_item_weight->text().toDouble());
-        query.bindValue(":quantity", ui->sb_item_quantity->text().toInt());
-        query.bindValue(":volume", ui->le_item_volume->text().toDouble());
-        query.bindValue(":dateOfAcquisition", ui->de_item_date->text());
-        query.bindValue(":price", ui->le_item_price->text().toDouble());
-        query.bindValue(":desired", ui->cb_item_desired->isChecked());
-        query.bindValue(":url_manufacturer", ui->le_item_url->text());
-        query.bindValue(":url_RL", ui->le_item_url_rl->text());
-        query.bindValue(":note", ui->te_item_note->toPlainText());
+        if(whatToDo==TO_UPDATE){
+            itemStruct.id_item=id_item;
+        }
 
-        if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un nouvel item :";
+        sqlite->addModifyItem(itemStruct);
+
+        ui->le_item_reference->clear();
+        ui->le_item_weight->clear();
+        ui->sb_item_quantity->setValue(1);
+        ui->le_item_volume->clear();
+        ui->de_item_date->setDate(QDate::currentDate());
+        ui->le_item_price->clear();
+        ui->cb_item_desired->setChecked(false);
+        ui->le_item_url->clear();
+        ui->le_item_url_rl->clear();
+        ui->te_item_note->clear();
+
+    }else{
+            QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),tr("Veuillez sélectionner une marque valide."));
+        }
+}
+
+void ItemWindow::on_btn_item_saveClose_clicked()
+{
+    if(ui->cb_item_brand->currentIndex()!=0){
+        ItemStruct itemStruct ;
+        itemStruct.id_item=0;
+        itemStruct.id_category=idCategories.at(ui->cb_item_categorie->currentIndex());
+        itemStruct.id_brand=idBrand.at(ui->cb_item_brand->currentIndex()-1);
+        itemStruct.reference=ui->le_item_reference->text();
+        itemStruct.weight=ui->le_item_weight->text().toDouble();
+        itemStruct.quantity=ui->sb_item_quantity->text().toInt();
+        itemStruct.volume=ui->le_item_volume->text().toDouble();
+        itemStruct.dateOfAcquisition=ui->de_item_date->text();
+        itemStruct.price=ui->le_item_price->text().toDouble();
+        itemStruct.desired=ui->cb_item_desired->isChecked();
+        itemStruct.url_manufacturer=ui->le_item_url->text();
+        itemStruct.url_RL=ui->le_item_url_rl->text();
+        itemStruct.note=ui->te_item_note->toPlainText();
+
+        if(whatToDo==TO_UPDATE){
+            itemStruct.id_item=id_item;
+        }
+
+        sqlite->addModifyItem(itemStruct);
+
         close();
-    }else if (whatToDo==TO_UPDATE&&ui->cb_item_brand->currentIndex()!=0){
-        QString Squery="UPDATE Items SET id_category=:id_category,"
-                       "id_brand=:id_brand,"
-                       "reference=:reference,"
-                       "weight=:weight,"
-                       "quantity=:quantity,"
-                       "volume=:volume,"
-                       "dateOfAcquisition=:dateOfAcquisition,"
-                       "price=:price,"
-                       "desired=:desired,"
-                       "url_manufacturer=:url_manufacturer,"
-                       "url_RL=:url_RL,"
-                       "note=:note "
-                       "WHERE id_item=:id_item";
-        QSqlQuery query;
-        query.prepare(Squery);
-        query.bindValue(":id_category", idCategories.at(ui->cb_item_categorie->currentIndex()));
-        query.bindValue(":id_brand", idBrand.at(ui->cb_item_brand->currentIndex()-1));
-        query.bindValue(":id_item", id_item);
-        query.bindValue(":reference", ui->le_item_reference->text());
-        query.bindValue(":weight", ui->le_item_weight->text().toDouble());
-        query.bindValue(":quantity", ui->sb_item_quantity->text().toInt());
-        query.bindValue(":volume", ui->le_item_volume->text().toDouble());
-        query.bindValue(":dateOfAcquisition", ui->de_item_date->text());
-        query.bindValue(":price", ui->le_item_price->text().toDouble());
-        query.bindValue(":desired", ui->cb_item_desired->isChecked());
-        query.bindValue(":url_manufacturer", ui->le_item_url->text());
-        query.bindValue(":url_RL", ui->le_item_url_rl->text());
-        query.bindValue(":note", ui->te_item_note->toPlainText());
 
-        if(!query.exec()) qDebug()<<"[SQLite] Erreur dans la modification d'un item "<<query.lastError();
-        close();
     }else{
             QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),tr("Veuillez sélectionner une marque valide."));
         }
@@ -393,3 +405,5 @@ void ItemWindow::on_cb_alim_brand_activated(int index)
         ui->btn_alim_newBrand->hide();
     }
 }
+
+

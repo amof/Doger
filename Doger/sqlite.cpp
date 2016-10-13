@@ -55,7 +55,7 @@ void SqLite::addCategoryBrand(int sqlite_name, QString name){
     if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout de "<< name<<" : "<<query.lastError();
 }
 
-void SqLite::deleteCBIF(int sqlite_name, int id){
+void SqLite::deleteRecord(int sqlite_name, int id){
 
     QString Squery="";
     QSqlQuery query;
@@ -75,6 +75,12 @@ void SqLite::deleteCBIF(int sqlite_name, int id){
 
     case sqlite_FOOD:
         Squery = "DELETE FROM Food WHERE id_food=:id";
+        break;
+    case sqlite_LIST:
+        Squery = "DELETE FROM Lists WHERE id_list=:id";
+        break;
+    case sqlite_ITEMLIST:
+        Squery = "DELETE FROM ItemsLists WHERE id_list=:id";
         break;
 
     default:
@@ -106,6 +112,51 @@ void SqLite::modifyBrand(int id, QString name) {
     query.bindValue(":idBrand", id);
 
     if(!query.exec()) qDebug()<<"[SQLite] Erreur dans la modification d'une marque "<<db.lastError();
+}
+
+void SqLite::addModifyItem(ItemStruct itemStruct){
+
+    QString Squery = "";
+    QSqlQuery query;
+
+    if(itemStruct.id_item==0){
+        Squery="INSERT INTO Items VALUES (NULL , :id_category, :id_brand, :reference, :weight, :quantity, :volume, :dateOfAcquisition, :price, :desired, :url_manufacturer, :url_RL, :note)";
+    }else if(itemStruct.id_item>0){
+        Squery="UPDATE Items SET id_category=:id_category,"
+                               "id_brand=:id_brand,"
+                               "reference=:reference,"
+                               "weight=:weight,"
+                               "quantity=:quantity,"
+                               "volume=:volume,"
+                               "dateOfAcquisition=:dateOfAcquisition,"
+                               "price=:price,"
+                               "desired=:desired,"
+                               "url_manufacturer=:url_manufacturer,"
+                               "url_RL=:url_RL,"
+                               "note=:note "
+                               "WHERE id_item=:id_item";
+    }
+
+    query.prepare(Squery);
+
+    query.bindValue(":id_category", itemStruct.id_category);
+    query.bindValue(":id_brand", itemStruct.id_brand);
+    query.bindValue(":reference", itemStruct.reference);
+    query.bindValue(":weight", itemStruct.weight);
+    query.bindValue(":quantity", itemStruct.quantity);
+    query.bindValue(":volume", itemStruct.volume);
+    query.bindValue(":dateOfAcquisition", itemStruct.dateOfAcquisition);
+    query.bindValue(":price", itemStruct.price);
+    query.bindValue(":desired", itemStruct.desired);
+    query.bindValue(":url_manufacturer", itemStruct.url_manufacturer);
+    query.bindValue(":url_RL", itemStruct.url_RL);
+    query.bindValue(":note", itemStruct.note);
+
+    if(itemStruct.id_item>0){
+        query.bindValue(":id_item", itemStruct.id_item);
+    }
+
+    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un nouvel item :"<<query.lastError();
 }
 
 void SqLite::getCategoryBrand(int sqlite_name, QVector<int> *vector, QComboBox *cb) {
