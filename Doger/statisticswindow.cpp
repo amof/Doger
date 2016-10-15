@@ -19,17 +19,30 @@ StatisticsWindow::~StatisticsWindow()
 
 void StatisticsWindow::fillChartBackpack(int id_list){
 
-    QString qry="SELECT Categories.name, Sum(ItemsLists.totalWeight), Lists.weightBackpack FROM Lists, Categories INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON Items.id_category = Categories.id_category AND ItemsLists.id_item = Items.id_item WHERE ItemsLists.backpackOrSelf = \"backpack\" AND Lists.id_list = :id_list GROUP BY Categories.name";
+    QString qry="SELECT Categories.name, Sum(ItemsLists.totalWeight), Lists.weightBackpack FROM Lists, Categories INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON Items.id_category = Categories.id_category AND ItemsLists.id_item = Items.id_item WHERE ItemsLists.backpackOrSelf = \"backpack\" AND Lists.id_list = :id_list GROUP BY Categories.name ORDER BY Sum(ItemsLists.totalWeight) ASC";
     QSqlQuery query;
     query.prepare(qry);
     query.bindValue(":id_list", id_list);
     query.exec();
 
     QPieSeries *series = new QPieSeries();
+    QVector<int> vector;
+    QVector<QString> vectorName;
+
     while(query.next()){
-        double percentage = query.value(1).toDouble()/query.value(2).toDouble();
-        series->append(query.value(0).toString()+"("+QString::number(int(percentage*100))+"%)", percentage);
+        vector.append(int((query.value(1).toDouble()/query.value(2).toDouble())*100));
+        vectorName.append(query.value(0).toString());
     }
+    for(int i=0;i<vector.size();i++){
+        if(i%2==0){
+            //qDebug()<<"ici"<<vectorName[i/2]<<i/2;
+            series->append(vectorName[i/2]+"("+QString::number(vector[i/2])+"%)", vector[i/2]);
+        }else{
+            //qDebug()<<"là"<<vectorName[vector.size()-(i/2)-1]<<i<<QString::number(4-(i/2)-1);
+            series->append(vectorName[vector.size()-(i/2)-1]+"("+QString::number(vector[vector.size()-(i/2)-1])+"%)", vector[vector.size()-(i/2)-1]);
+        }
+    }
+
 
     QPieSlice *slice = new QPieSlice();
 
@@ -38,12 +51,11 @@ void StatisticsWindow::fillChartBackpack(int id_list){
         slice->setLabelVisible();
     }
 
-
     QChart *chart = new QChart();
     chart->addSeries(series);
     chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->setTitle("Répartition du sac à dos");
     chart->legend()->hide();
+    chart->setTitle("Répartition du sac à dos");
     chart->setTitleFont(QFont("Segoe UI", 14));
 
 
@@ -53,16 +65,29 @@ void StatisticsWindow::fillChartBackpack(int id_list){
 
 void StatisticsWindow::fillChartSelf(int id_list){
 
-    QString qry="SELECT Categories.name, Sum(ItemsLists.totalWeight), Lists.weightSelf FROM Lists, Categories INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON Items.id_category = Categories.id_category AND ItemsLists.id_item = Items.id_item WHERE ItemsLists.backpackOrSelf = \"self\" AND Lists.id_list = :id_list GROUP BY Categories.name";
+    QString qry="SELECT Categories.name, Sum(ItemsLists.totalWeight), Lists.weightSelf FROM Lists, Categories INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON Items.id_category = Categories.id_category AND ItemsLists.id_item = Items.id_item WHERE ItemsLists.backpackOrSelf = \"self\" AND Lists.id_list = :id_list GROUP BY Categories.name ORDER BY Sum(ItemsLists.totalWeight) ASC";
     QSqlQuery query;
     query.prepare(qry);
     query.bindValue(":id_list", id_list);
     query.exec();
 
     QPieSeries *series = new QPieSeries();
+    QVector<int> vector;
+    QVector<QString> vectorName;
+
     while(query.next()){
-        double percentage = query.value(1).toDouble()/query.value(2).toDouble();
-        series->append(query.value(0).toString()+"("+QString::number(int(percentage*100))+"%)", percentage);
+        vector.append(int((query.value(1).toDouble()/query.value(2).toDouble())*100));
+        vectorName.append(query.value(0).toString());
+    }
+
+    for(int i=0;i<vector.size();i++){
+        if(i%2==0){
+            //qDebug()<<"ici"<<vectorName[i/2]<<i/2;
+            series->append(vectorName[i/2]+"("+QString::number(vector[i/2])+"%)", vector[i/2]);
+        }else{
+            //qDebug()<<"là"<<vectorName[vector.size()-(i/2)-1]<<i<<QString::number(4-(i/2)-1);
+            series->append(vectorName[vector.size()-(i/2)-1]+"("+QString::number(vector[vector.size()-(i/2)-1])+"%)", vector[vector.size()-(i/2)-1]);
+        }
     }
 
     QPieSlice *slice = new QPieSlice();
