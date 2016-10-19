@@ -284,6 +284,8 @@ void MainWindow::deleteQuestion(QString name, int toDelete, int index){
 
 void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
 {
+    // Clean the QtableWidget
+    ui->tw_listDetail->setRowCount(0);
 
     id_list = index.sibling(index.row(),0).data().toInt();
     ui->lbl_weightBackpack->setText(index.sibling(index.row(),2).data().toString());
@@ -292,10 +294,6 @@ void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
     ui->gb_listDetail->setTitle("Liste sélectionnée : "+index.sibling(index.row(),1).data().toString());
 
     fillListChart(index.sibling(index.row(),0).data().toInt());
-
-    for(int i=0;i<ui->tw_listDetail->rowCount();i++){
-        ui->tw_listDetail->removeRow(0);
-    }
 
     QString reqListDetail="SELECT Categories.name, Brands.name, Items.reference, ItemsLists.totalWeight, ItemsLists.quantity, ItemsLists.backpackOrSelf FROM Brands INNER JOIN Categories ON '' = '' INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand, Lists INNER JOIN ItemsLists ON ItemsLists.id_item = Items.id_item AND ItemsLists.id_list = Lists.id_list WHERE Lists.id_list=:id_list ORDER BY Categories.name DESC, Brands.name DESC, Items.reference DESC ";
     QSqlQuery query;
@@ -392,6 +390,8 @@ void MainWindow::on_btn_list_add_clicked()
         listwindow->show();
     }
     delete listwindow;
+	refreshDatabase();
+
 
 }
 
@@ -405,6 +405,7 @@ void MainWindow::on_btn_list_modify_clicked()
             listwindow->show();
         }
         delete listwindow;
+		refreshDatabase();
 
     }
 }
