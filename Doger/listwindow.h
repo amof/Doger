@@ -11,6 +11,7 @@
 #include <QDataStream>
 #include <QTreeWidgetItem>
 #include <sqlite.h>
+#include <QElapsedTimer>
 
 namespace Ui {
 class ListWindow;
@@ -28,6 +29,7 @@ private:
     Ui::ListWindow *ui;
     enum qItemsView{i_brand, i_reference, i_weight, i_id};
     enum qListWidget{l_brand, l_reference, l_weightBackpack, l_weightSelf, l_quantity, l_id, l_weight};
+
     #define length_qListWidget 7
     int numberOfCategoriesInList;
     SqLite *sqlite;
@@ -35,6 +37,8 @@ private:
     #define TO_INSERT 0
     #define TO_UPDATE 1
     bool whatToDo=TO_INSERT;
+    QVector<int> list_id_item_toDelete;
+    QVector<int> list_id_item;
 
 private slots:
     void on_dockWidget_visibilityChanged(bool visible);
@@ -47,6 +51,7 @@ private slots:
     void removeItemInQTree(QVector<QString> vectorFromList);
     void getExistingList();
     void on_btn_saveList_clicked();
+    void on_tw_items_doubleClicked(const QModelIndex &index);
 };
 
 #endif // LISTWINDOW_H

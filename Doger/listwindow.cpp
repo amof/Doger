@@ -26,6 +26,8 @@ ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
     headerLabels.push_back(tr("Poids Sac"));
     headerLabels.push_back(tr("Poids Soi"));
     headerLabels.push_back(tr("Quantité"));
+    headerLabels.push_back(tr("ID"));
+    headerLabels.push_back(tr("Poids individuel"));
     ui->tw_list->setHeaderLabels(headerLabels);
 
     ui->lbl_backpack->setPixmap(QPixmap(":/images/backpack.png").scaled(100,100,Qt::KeepAspectRatio));
@@ -113,6 +115,21 @@ QList<QStandardItem *> ListWindow::prepareRow(const QString &first,
     return rowItems;
 }
 
+QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
+    QVector<QString> data;
+
+    QDataStream *ds = new QDataStream(ba);
+
+    while(!ds->atEnd()){
+        int row, col;
+        QMap<int,  QVariant> roleDataMap;
+        *ds >> row >> col >> roleDataMap;
+        //qDebug()<<QString::number(row)<<QString::number(col)<<roleDataMap<<roleDataMap[0].toString();
+        data.append(roleDataMap[0].toString());
+    }
+
+    return data;
+}
 
 
 void ListWindow::on_dockWidget_topLevelChanged(bool topLevel)
@@ -166,7 +183,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
     else if (event->type()==QEvent::KeyPress){
         QKeyEvent* pKeyEvent=static_cast<QKeyEvent*>(event);
         if (pKeyEvent->key() == Qt::Key_Delete){
-            if (ui->tw_list->hasFocus() && !ui->tw_list->selectedItems().isEmpty()){
+            if (ui->tw_list->hasFocus() && !ui->tw_list->selectedItems().isEmpty()&&ui->tw_list->currentItem()->childCount()==0){
                 QVector<QString> vector;
                 for(int i=0;i<length_qListWidget;i++){
                   vector.append(ui->tw_list->selectedItems()[0]->text(i));
@@ -177,20 +194,39 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
     }
 }
 
-QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
-    QVector<QString> data;
+void ListWindow::getExistingList(){
+    QElapsedTimer timer;
+    timer.start();
+    list_id_item_toDelete.clear();
 
-    QDataStream *ds = new QDataStream(ba);
+    QString qry="SELECT Lists.name, Lists.hikeDate, Lists.creationDate, Lists.id_foodPlan, Lists.weightBackpack, Lists.weightSelf, Lists.note FROM Lists WHERE Lists.id_list=:id_list";
+    QSqlQuery query;
+    query.prepare(qry);
+    query.bindValue(":id_list",id_list);
+    query.exec();
+    query.next();
 
-    while(!ds->atEnd()){
-        int row, col;
-        QMap<int,  QVariant> roleDataMap;
-        *ds >> row >> col >> roleDataMap;
-        //qDebug()<<QString::number(row)<<QString::number(col)<<roleDataMap<<roleDataMap[0].toString();
-        data.append(roleDataMap[0].toString());
+    ui->le_listName->setText(query.value(0).toString());
+    ui->de_hikeDate->setDate(QDate::fromString(query.value(1).toString(), "dd-MM-yy"));
+    ui->de_listDate->setDate(QDate::fromString(query.value(2).toString(), "dd-MM-yy"));
+    ui->te_note->setText(query.value(6).toString());
+
+    qry="SELECT ItemsLists.id_item, ItemsLists.backpackOrSelf, ItemsLists.quantity FROM ItemsLists WHERE ItemsLists.id_list=:id_list";
+    query.clear();
+    query.prepare(qry);
+    query.bindValue(":id_list",id_list);
+    query.exec();
+
+    while(query.next()){
+        list_id_item.append(query.value(0).toInt());
+        if(query.value(1)=="backpack"){
+            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightBackpack),query.value(2).toInt());
+        }else if(query.value(1)=="self"){
+            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightSelf),query.value(2).toInt());
+        }
     }
 
-    return data;
+    qDebug() <<"[ListWindow] Time Elapsed in (getExistingList):" <<timer.elapsed()<<" msec";
 }
 
 void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQuantity){
@@ -255,6 +291,12 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
 }
 
 void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
+
+    if(whatToDo==TO_UPDATE && list_id_item.contains(vectorFromList[qListWidget(l_id)].toInt())){
+        list_id_item_toDelete.append(vectorFromList[qListWidget(l_id)].toInt());
+        list_id_item.removeAt(list_id_item.indexOf(vectorFromList[qListWidget(l_id)].toInt()));
+    }
+
     int quantity = vectorFromList[qListWidget(l_quantity)].toInt();
     QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(vectorFromList[qListWidget(l_id)], Qt::MatchExactly|Qt::MatchRecursive,qListWidget(l_id));
     QTreeWidgetItem* root = childSearch[0]->parent();
@@ -281,12 +323,12 @@ void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
         childSearch[0]->setText(qListWidget(l_quantity),QString::number(quantity-1) );
     }else if(quantity==1){
         root->removeChild(childSearch[0]);
-        if(numberOfCategoriesInList>0)numberOfCategoriesInList++;
     }
 
     // If there are no more children delete the root
     if(root->childCount()==0){
         delete ui->tw_list->takeTopLevelItem(ui->tw_list->indexOfTopLevelItem(root));
+        if(numberOfCategoriesInList>0)numberOfCategoriesInList--;
     }
 
     // Display total weight value
@@ -300,83 +342,42 @@ void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
 
 void ListWindow::on_btn_saveList_clicked()
 {
+    QElapsedTimer timer;
+    timer.start();
+
+    ListStruct list;
+    list.id_list=0;
+    list.name=ui->le_listName->text();
+    list.creationDate=ui->de_listDate->text();
+    list.hikeDate=ui->de_hikeDate->text();
+    list.id_foodPlan=0;
+    list.weightBackpack=ui->lbl_weightBackpack->text().toDouble();
+    list.weightSelf=ui->lbl_weightSelf->text().toDouble();
+    list.note=ui->te_note->toPlainText();
+
     if(ui->le_listName->text()!=""){
-        QString qry="INSERT INTO Lists VALUES (NULL , :name, :hikeDate, :creationDate, :id_foodPlan, :weightBackpack, :weightSelf, :note)";
-        QSqlQuery query;
-        query.prepare(qry);
-        query.bindValue(":name",ui->le_listName->text());
-        query.bindValue(":hikeDate",ui->de_hikeDate->text());
-        query.bindValue(":creationDate",ui->de_listDate->text());
-        query.bindValue(":id_foodPlan","");
-        query.bindValue(":weightBackpack",ui->lbl_weightBackpack->text().toDouble());
-        query.bindValue(":weightSelf",ui->lbl_weightSelf->text().toDouble());
-        query.bindValue(":note",ui->te_note->toPlainText());
+        if(whatToDo==TO_INSERT){
+            QVector<int> nothing;
+            sqlite->addModifyList(list, numberOfCategoriesInList, ui->tw_list, nothing);
 
-        if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'une liste "<<query.lastError();
+        }else if(whatToDo==TO_UPDATE){
+            qDebug()<<"To Delete : "<<list_id_item_toDelete;
+            qDebug()<<"To Update : "<<list_id_item;
+            list.id_list=id_list;
+            // Delete
+            sqlite->deleteRecordInItemsLists(id_list, list_id_item_toDelete);
+            list_id_item_toDelete.clear();
+            // Update & Insert
+            sqlite->addModifyList(list, numberOfCategoriesInList, ui->tw_list, list_id_item);
 
-        int id_list = query.lastInsertId().toInt();
-
-        if(id_list!=0){
-            qry="INSERT INTO ItemsLists VALUES (:id_item , :id_list, :quantity, :totalWeight, :backpackOrSelf)";
-
-            QTreeWidgetItem *item = new QTreeWidgetItem;
-            for(int i=0;i<numberOfCategoriesInList;i++){
-                item = ui->tw_list->topLevelItem(i);
-                QString backpackOrSelf="";
-                double weight=0;
-
-                for(int j=0;j<item->childCount();j++){
-                    if(item->child(j)->text(qListWidget(l_weightBackpack)).isEmpty()){
-                        backpackOrSelf="self";
-                        weight = item->child(j)->text(qListWidget(l_weightSelf)).toDouble();
-                    }
-                    else if(item->child(j)->text(qListWidget(l_weightSelf)).isEmpty()){
-                        backpackOrSelf="backpack";
-                        weight = item->child(j)->text(qListWidget(l_weightBackpack)).toDouble();
-                    }
-
-                    query.clear();
-                    query.prepare(qry);
-                    query.bindValue(":id_item",item->child(j)->text(qListWidget(l_id)).toInt());
-                    query.bindValue(":id_list",id_list);
-                    query.bindValue(":quantity",item->child(j)->text(qListWidget(l_quantity)).toInt());
-                    query.bindValue(":totalWeight",weight);
-                    query.bindValue(":backpackOrSelf",backpackOrSelf);
-
-                    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un item de liste "<<query.lastError();
-                }
-            }
-
-            item = NULL;
-            delete item;
         }
+
     }
+    qDebug() <<"[ListWindow] Time Elapsed in (on_btn_saveList_clicked):" <<timer.elapsed()<<" msec";
+
 }
 
-void ListWindow::getExistingList(){
-    QString qry="SELECT Lists.name, Lists.hikeDate, Lists.creationDate, Lists.id_foodPlan, Lists.weightBackpack, Lists.weightSelf, Lists.note FROM Lists WHERE Lists.id_list=:id_list";
-    QSqlQuery query;
-    query.prepare(qry);
-    query.bindValue(":id_list",id_list);
-    query.exec();
-    query.next();
-
-    ui->le_listName->setText(query.value(0).toString());
-    ui->de_hikeDate->setDate(QDate::fromString(query.value(1).toString(), "dd-MM-yy"));
-    ui->de_listDate->setDate(QDate::fromString(query.value(2).toString(), "dd-MM-yy"));
-    ui->te_note->setText(query.value(6).toString());
-
-    qry="SELECT ItemsLists.id_item, ItemsLists.backpackOrSelf, ItemsLists.quantity FROM ItemsLists WHERE ItemsLists.id_list=:id_list";
-    query.clear();
-    query.prepare(qry);
-    query.bindValue(":id_list",id_list);
-    query.exec();
-
-    while(query.next()){
-        if(query.value(1)=="backpack"){
-            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightBackpack),query.value(2).toInt());
-        }else if(query.value(1)=="self"){
-            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightSelf),query.value(2).toInt());
-        }
-    }
+void ListWindow::on_tw_items_doubleClicked(const QModelIndex &index)
+{
+    insertItemInQTree(index.sibling(index.row(),3).data().toInt(), qListWidget(l_weightBackpack), 1);
 }

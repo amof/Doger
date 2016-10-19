@@ -3,6 +3,7 @@
 
 #include <QtSql>
 #include <QComboBox>
+#include <QTreeWidget>
 
 struct ItemStruct{
     int id_item;
@@ -17,6 +18,17 @@ struct ItemStruct{
     bool desired;
     QString url_manufacturer;
     QString url_RL;
+    QString note;
+};
+
+struct ListStruct{
+    int id_list;
+    QString name;
+    QString hikeDate;
+    QString creationDate;
+    int id_foodPlan;
+    double weightBackpack;
+    double weightSelf;
     QString note;
 };
 
@@ -45,10 +57,15 @@ public:
 
     void addModifyItem(ItemStruct itemStruct);
 
+    void addModifyList(ListStruct list, int numberOfCategoriesInList, QTreeWidget *listDetail, QVector<int> itemAlreadyExisting);
+    void deleteRecordInItemsLists(int id_list, QVector<int> id_item);
+
     void getCategoryBrand(int sqlite_name, QVector<int> *vector, QComboBox *cb);
 
 private:
     QSqlDatabase db ;
+    enum qListWidget{l_brand, l_reference, l_weightBackpack, l_weightSelf, l_quantity, l_id, l_weight};
+
 };
 
 #endif // SQLITE_H
