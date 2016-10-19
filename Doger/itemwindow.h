@@ -53,10 +53,6 @@ private slots:
 
     void on_btn_item_newBrand_clicked();
 
-    #define TO_INSERT 0
-    #define TO_UPDATE 1
-
-
     void on_btn_alim_save_clicked();
 
     void on_btn_alim_newBrand_clicked();
@@ -71,9 +67,11 @@ private:
     QVector<int> idCategories;
     QVector<int> idBrand;
     SqLite *sqlite;
-    bool whatToDo=TO_INSERT;
-    int id_item=0;
     quint8 currentPage=0;
+    int id_item=0;
+    #define TO_INSERT 0
+    #define TO_UPDATE 1
+    bool whatToDo=TO_INSERT;
 
 };
 

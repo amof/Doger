@@ -2,7 +2,7 @@
 #include "ui_listwindow.h"
 #include <QDebug>
 
-ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer) :
+ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
     QDialog(parent),
     ui(new Ui::ListWindow)
 {
@@ -35,6 +35,12 @@ ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer) :
     ui->de_listDate->setDate(QDate::currentDate());
 
     numberOfCategoriesInList=0;
+
+    if(index!=0){
+        whatToDo=TO_UPDATE;
+        id_list=index;
+        getExistingList();
+    }
 }
 
 ListWindow::~ListWindow()
@@ -135,9 +141,9 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                 ev->setDropAction(Qt::CopyAction);
                 ev->accept();
                 QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
-
-                if(obj==ui->qw_backpack){insertItemInQTree(decodeByteArray(ba), qListWidget(l_weightBackpack));}
-                else if(obj==ui->qw_self){ insertItemInQTree(decodeByteArray(ba), qListWidget(l_weightSelf));}
+                int id_item = decodeByteArray(ba).at(qItemsView(i_id)).toInt();
+                if(obj==ui->qw_backpack){insertItemInQTree(id_item, qListWidget(l_weightBackpack),1);}
+                else if(obj==ui->qw_self){ insertItemInQTree(id_item, qListWidget(l_weightSelf),1);}
 
         }
     }
@@ -187,24 +193,24 @@ QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
     return data;
 }
 
-void ListWindow::insertItemInQTree(QVector<QString> vectorFromItems, qListWidget place){
+void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQuantity){
     QString qry="SELECT Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity FROM Brands, Categories INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand WHERE Items.id_item=:id_item";
     QSqlQuery query;
     query.prepare(qry);
-    query.bindValue(":id_item", vectorFromItems[qItemsView(i_id)]);
+    query.bindValue(":id_item", id_item);
     query.exec();
 
     if(query.next()){
         //Child Search
-        QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(vectorFromItems[qItemsView(i_id)], Qt::MatchExactly|Qt::MatchRecursive,qListWidget(l_id));
+        QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(QString::number(id_item), Qt::MatchExactly|Qt::MatchRecursive,qListWidget(l_id));
         QTreeWidgetItem *child = new QTreeWidgetItem();
 
         if(childSearch.isEmpty()){
             child->setText(qListWidget(l_brand),query.value(1).toString());
             child->setText(qListWidget(l_reference),query.value(2).toString());
-            child->setText(qListWidget(place),query.value(3).toString());
-            child->setText(qListWidget(l_quantity),"1");
-            child->setText(qListWidget(l_id),vectorFromItems[qItemsView(i_id)]);
+            child->setText(qListWidget(place),QString::number(query.value(3).toDouble()*defaultQuantity));
+            child->setText(qListWidget(l_quantity),QString::number(defaultQuantity));
+            child->setText(qListWidget(l_id),QString::number(id_item));
             child->setText(qListWidget(l_weight), query.value(3).toString());
 
         }else if(!childSearch.isEmpty() && childSearch[0]->text(qItemsView(place))!=""){
@@ -230,7 +236,7 @@ void ListWindow::insertItemInQTree(QVector<QString> vectorFromItems, qListWidget
             numberOfCategoriesInList++;
         }else if(!rootSearch.isEmpty() && child->text(qItemsView(place))!=""){
             rootSearch[0]->addChild(child);
-            int weight = rootSearch[0]->text(qListWidget(place)).toDouble() + query.value(3).toDouble();
+            int weight = rootSearch[0]->text(qListWidget(place)).toDouble() + (query.value(3).toDouble()*defaultQuantity);
             rootSearch[0]->setText(qListWidget(place),QString::number(weight));
         }
 
@@ -241,15 +247,11 @@ void ListWindow::insertItemInQTree(QVector<QString> vectorFromItems, qListWidget
 
         // Display total weight value
         if(qListWidget(place)==qListWidget(l_weightBackpack)){
-            ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+query.value(3).toDouble()));
+            ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
         }else if(qListWidget(place)==qListWidget(l_weightSelf)){
-            ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+query.value(3).toDouble()));
-
+            ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
         }
-
-
     }
-
 }
 
 void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
@@ -348,7 +350,33 @@ void ListWindow::on_btn_saveList_clicked()
             item = NULL;
             delete item;
         }
+    }
+}
 
+void ListWindow::getExistingList(){
+    QString qry="SELECT Lists.name, Lists.hikeDate, Lists.creationDate, Lists.id_foodPlan, Lists.weightBackpack, Lists.weightSelf, Lists.note FROM Lists WHERE Lists.id_list=:id_list";
+    QSqlQuery query;
+    query.prepare(qry);
+    query.bindValue(":id_list",id_list);
+    query.exec();
+    query.next();
 
+    ui->le_listName->setText(query.value(0).toString());
+    ui->de_hikeDate->setDate(QDate::fromString(query.value(1).toString(), "dd-MM-yy"));
+    ui->de_listDate->setDate(QDate::fromString(query.value(2).toString(), "dd-MM-yy"));
+    ui->te_note->setText(query.value(6).toString());
+
+    qry="SELECT ItemsLists.id_item, ItemsLists.backpackOrSelf, ItemsLists.quantity FROM ItemsLists WHERE ItemsLists.id_list=:id_list";
+    query.clear();
+    query.prepare(qry);
+    query.bindValue(":id_list",id_list);
+    query.exec();
+
+    while(query.next()){
+        if(query.value(1)=="backpack"){
+            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightBackpack),query.value(2).toInt());
+        }else if(query.value(1)=="self"){
+            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightSelf),query.value(2).toInt());
+        }
     }
 }

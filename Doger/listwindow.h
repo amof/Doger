@@ -21,7 +21,7 @@ class ListWindow : public QDialog
     Q_OBJECT
 
 public:
-    explicit ListWindow(QWidget *parent = 0, SqLite *sqlitepointer = NULL);
+    explicit ListWindow(QWidget *parent = 0, SqLite *sqlitepointer = NULL, int index=0);
     ~ListWindow();
 
 private:
@@ -31,6 +31,11 @@ private:
     #define length_qListWidget 7
     int numberOfCategoriesInList;
     SqLite *sqlite;
+    int id_list=0;
+    #define TO_INSERT 0
+    #define TO_UPDATE 1
+    bool whatToDo=TO_INSERT;
+
 private slots:
     void on_dockWidget_visibilityChanged(bool visible);
     void populatetw_Matos();
@@ -38,9 +43,9 @@ private slots:
     bool eventFilter(QObject* obj, QEvent* event);
     void on_dockWidget_topLevelChanged(bool topLevel);
     QVector<QString> decodeByteArray(QByteArray ba);
-    void insertItemInQTree(QVector<QString> vectorFromItems, qListWidget place);
+    void insertItemInQTree(int id_item, qListWidget place, int defaultQuantity);
     void removeItemInQTree(QVector<QString> vectorFromList);
-
+    void getExistingList();
     void on_btn_saveList_clicked();
 };
 
