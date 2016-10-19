@@ -395,6 +395,20 @@ void MainWindow::on_btn_list_add_clicked()
 
 }
 
+void MainWindow::on_btn_list_modify_clicked()
+{
+    if(id_list!=0){
+
+        ListWindow *listwindow = new ListWindow(0, sqlite,ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
+
+        if(!listwindow->exec()){
+            listwindow->show();
+        }
+        delete listwindow;
+
+    }
+}
+
 
 void MainWindow::on_btn_list_delete_clicked()
 {

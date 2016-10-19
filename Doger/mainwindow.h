@@ -82,6 +82,8 @@ private slots:
 
     void on_btn_list_delete_clicked();
 
+    void on_btn_list_modify_clicked();
+
 public:
 
 
