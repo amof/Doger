@@ -47,6 +47,8 @@ ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
 
 ListWindow::~ListWindow()
 {
+    sqlite=NULL;
+    delete sqlite;
     delete ui;
 }
 
@@ -86,7 +88,7 @@ void ListWindow::populatetw_Matos()
         }
 
         QList<QStandardItem *> secondRow =prepareRow(brandName, reference, weight, QString::number(id));
-        preparedRow.first()->appendRow(secondRow);;
+        preparedRow.first()->appendRow(secondRow);
         children++;
     }
 
@@ -99,6 +101,9 @@ void ListWindow::populatetw_Matos()
     for(int i=0;i++;i<m->columnCount()){
         ui->tw_items->resizeColumnToContents(i);
     }
+
+    m=NULL;
+    delete m;
 }
 
 
@@ -128,6 +133,7 @@ QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
         data.append(roleDataMap[0].toString());
     }
 
+    delete ds;
     return data;
 }
 
@@ -151,6 +157,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                 if(ev->source()==ui->tw_items){
                      ev->acceptProposedAction();
                 }
+                delete ev;
 
             }
             else if (event->type() == QEvent::Drop) {
@@ -161,6 +168,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                 int id_item = decodeByteArray(ba).at(qItemsView(i_id)).toInt();
                 if(obj==ui->qw_backpack){insertItemInQTree(id_item, qListWidget(l_weightBackpack),1);}
                 else if(obj==ui->qw_self){ insertItemInQTree(id_item, qListWidget(l_weightSelf),1);}
+                delete ev;
 
         }
     }
@@ -170,6 +178,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
             if(ev->source()==ui->tw_list){
                  ev->acceptProposedAction();
             }
+            delete ev;
 
         }
         else if (event->type() == QEvent::Drop) {
@@ -178,6 +187,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
             ev->accept();
             QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
             removeItemInQTree(decodeByteArray(ba));
+            delete ev;
         }
     }
     else if (event->type()==QEvent::KeyPress){
@@ -191,6 +201,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                 removeItemInQTree(vector);
             }
         }
+        delete pKeyEvent;
     }
 }
 
@@ -241,6 +252,9 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
         QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(QString::number(id_item), Qt::MatchExactly|Qt::MatchRecursive,qListWidget(l_id));
         QTreeWidgetItem *child = new QTreeWidgetItem();
 
+        // Root Search
+        QList<QTreeWidgetItem*> rootSearch = ui->tw_list->findItems(query.value(0).toString(), Qt::MatchExactly);
+
         if(childSearch.isEmpty()){
             child->setText(qListWidget(l_brand),query.value(1).toString());
             child->setText(qListWidget(l_reference),query.value(2).toString());
@@ -259,9 +273,6 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
             child->setText(qListWidget(place),QString::number(weight));
         }
 
-        // Root Search
-        QList<QTreeWidgetItem*> rootSearch = ui->tw_list->findItems(query.value(0).toString(), Qt::MatchExactly);
-
         // Add root/child
         if(rootSearch.isEmpty()){
             QTreeWidgetItem *root = new QTreeWidgetItem();
@@ -270,6 +281,8 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
             ui->tw_list->addTopLevelItem(root);
             root->addChild(child);
             numberOfCategoriesInList++;
+            root = NULL;
+            delete root;
         }else if(!rootSearch.isEmpty() && child->text(qItemsView(place))!=""){
             rootSearch[0]->addChild(child);
             int weight = rootSearch[0]->text(qListWidget(place)).toDouble() + (query.value(3).toDouble()*defaultQuantity);
@@ -287,6 +300,9 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
         }else if(qListWidget(place)==qListWidget(l_weightSelf)){
             ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
         }
+
+        child = NULL;
+        delete child;
     }
 }
 
@@ -336,8 +352,10 @@ void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
         ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()-weight));
     }else if(childSearch[0]->text(qListWidget(l_weightBackpack)).isEmpty()){
         ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()-weight));
-
     }
+
+    root=NULL;
+    delete root;
 }
 
 void ListWindow::on_btn_saveList_clicked()
