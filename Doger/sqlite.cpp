@@ -178,6 +178,56 @@ void SqLite::addModifyItem(ItemStruct itemStruct){
     if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un nouvel item :"<<query.lastError();
 }
 
+void SqLite::addModifyFood(FoodStruct food){
+    QString Squery = "";
+    QSqlQuery query;
+
+    if(food.id_food==0){
+        Squery = "INSERT INTO Food VALUES (NULL , :id_category, :id_brand, :reference, :weight, :quantity, :expirationDate, :price,"
+                                 " :url, :energy, :fat,:carbohydrates,:fibres,:protein,:salt, :note)";;
+    }else if(food.id_food>0){
+        Squery="UPDATE FOOD SET id_brand=:id_brand,"
+                               "reference=:reference,"
+                               "weight=:weight,"
+                               "quantity=:quantity,"
+                               "expirationDate=:expirationDate,"
+                               "price=:price,"
+                               "url=:url,"
+                               "energy=:energy,"
+                               "fat=:fat,"
+                               "carbohydrates=:carbohydrates,"
+                               "fibres=:fibres,"
+                               "protein=:protein,"
+                               "salt=:salt,"
+                               "note=:note "
+                               "WHERE id_food=:id_food";
+    }
+
+    query.prepare(Squery);
+
+    query.bindValue(":id_category", food.id_category);
+    query.bindValue(":id_brand", food.id_brand);
+    query.bindValue(":reference", food.reference);
+    query.bindValue(":weight", food.weight);
+    query.bindValue(":quantity", food.quantity);
+    query.bindValue(":expirationDate",food.expirationDate);
+    query.bindValue(":price", food.price);
+    query.bindValue(":url", food.url);
+    query.bindValue(":energy", food.energy);
+    query.bindValue(":fat", food.fat);
+    query.bindValue(":carbohydrates", food.carbohydrates);
+    query.bindValue(":fibres", food.fibres);
+    query.bindValue(":protein", food.protein);
+    query.bindValue(":salt", food.salt);
+    query.bindValue(":note", food.note);
+
+    if(food.id_food>0){
+        query.bindValue(":id_food", food.id_food);
+    }
+
+    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un nouvel item :"<<query.lastError();
+}
+
 void SqLite::addModifyList(ListStruct list, int numberOfCategoriesInList, QTreeWidget *listDetail, QVector<int> itemAlreadyExisting){
 
     QString Squery="";

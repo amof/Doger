@@ -36,6 +36,8 @@ ItemWindow::ItemWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
 
 ItemWindow::~ItemWindow()
 {
+    sqlite=NULL;
+    delete sqlite;
     delete ui;
 }
 
@@ -244,32 +246,9 @@ void ItemWindow::on_btn_item_save_clicked()
 void ItemWindow::on_btn_item_saveClose_clicked()
 {
     if(ui->cb_item_brand->currentIndex()!=0){
-        ItemStruct itemStruct ;
-        itemStruct.id_item=0;
-        itemStruct.id_category=idCategories.at(ui->cb_item_categorie->currentIndex());
-        itemStruct.id_brand=idBrand.at(ui->cb_item_brand->currentIndex()-1);
-        itemStruct.reference=ui->le_item_reference->text();
-        itemStruct.weight=ui->le_item_weight->text().toDouble();
-        itemStruct.quantity=ui->sb_item_quantity->text().toInt();
-        itemStruct.volume=ui->le_item_volume->text().toDouble();
-        itemStruct.dateOfAcquisition=ui->de_item_date->text();
-        itemStruct.price=ui->le_item_price->text().toDouble();
-        itemStruct.desired=ui->cb_item_desired->isChecked();
-        itemStruct.url_manufacturer=ui->le_item_url->text();
-        itemStruct.url_RL=ui->le_item_url_rl->text();
-        itemStruct.note=ui->te_item_note->toPlainText();
-
-        if(whatToDo==TO_UPDATE){
-            itemStruct.id_item=id_item;
-        }
-
-        sqlite->addModifyItem(itemStruct);
-
+        on_btn_item_save_clicked();
         close();
-
-    }else{
-            QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),tr("Veuillez sélectionner une marque valide."));
-        }
+    }
 }
 
 void ItemWindow::on_cb_item_brand_activated(int index)
@@ -308,66 +287,32 @@ void ItemWindow::on_btn_item_newBrand_clicked()
 /************************************************************************/
 void ItemWindow::on_btn_alim_save_clicked()
 {
+
+    FoodStruct food;
+    food.id_food=0;
+    food.id_category=idCategories.at(ui->cb_item_categorie->findText("Alimentation"));
+    food.id_brand=idBrand.at(ui->cb_alim_brand->currentIndex()-1);
+    food.reference=ui->le_alim_reference->text();
+    food.weight=ui->le_alim_weight->text().toDouble();
+    food.quantity=ui->sb_alim_quantity->text().toInt();
+    food.expirationDate=ui->de_alim_date->text();
+    food.price=ui->le_alim_price->text().toDouble();
+    food.url=ui->le_alim_url->text();
+    food.energy=ui->le_alim_energy->text().toDouble();
+    food.fat=ui->le_alim_fat->text().toDouble();
+    food.carbohydrates=ui->le_alim_carbohydrates->text().toDouble();
+    food.fibres=ui->le_alim_fibres->text().toDouble();
+    food.protein=ui->le_alim_protein->text().toDouble();
+    food.salt= ui->le_alim_salt->text().toDouble();
+    food.note=ui->te_alim_note->toPlainText();
+
     if(whatToDo==TO_INSERT&&ui->cb_alim_brand->currentIndex()!=0){
-        QString Squery = "INSERT INTO Food VALUES (NULL , :id_category, :id_brand, :reference, :weight, :quantity, :expirationDate, :price,"
-                         " :url, :energy, :fat,:carbohydrates,:fibres,:protein,:salt, :note)";
-        QSqlQuery query;
-
-        query.prepare(Squery);
-        query.bindValue(":id_category", idCategories.at(ui->cb_item_categorie->findText("Alimentation"))); // !!!
-        query.bindValue(":id_brand", idBrand.at(ui->cb_alim_brand->currentIndex()-1));
-        query.bindValue(":reference", ui->le_alim_reference->text());
-        query.bindValue(":weight", ui->le_alim_weight->text().toDouble());
-        query.bindValue(":quantity", ui->sb_alim_quantity->text().toInt());
-        query.bindValue(":expirationDate",ui->de_alim_date->text());
-        query.bindValue(":price", ui->le_alim_price->text().toDouble());
-        query.bindValue(":url", ui->le_alim_url->text());
-        query.bindValue(":energy", ui->le_alim_energy->text().toDouble());
-        query.bindValue(":fat", ui->le_alim_fat->text().toDouble());
-        query.bindValue(":carbohydrates", ui->le_alim_carbohydrates->text().toDouble());
-        query.bindValue(":fibres", ui->le_alim_fibres->text().toDouble());
-        query.bindValue(":protein", ui->le_alim_protein->text().toDouble());
-        query.bindValue(":salt", ui->le_alim_salt->text().toDouble());
-        query.bindValue(":note", ui->te_alim_note->toPlainText());
-
-        if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un nouvel item :";
+        sqlite->addModifyFood(food);
         close();
     }else if (whatToDo==TO_UPDATE&&ui->cb_alim_brand->currentIndex()!=0){
-        QString Squery="UPDATE FOOD SET id_brand=:id_brand,"
-                       "reference=:reference,"
-                       "weight=:weight,"
-                       "quantity=:quantity,"
-                       "expirationDate=:expirationDate,"
-                       "price=:price,"
-                       "url=:url,"
-                       "energy=:energy,"
-                       "fat=:fat,"
-                       "carbohydrates=:carbohydrates,"
-                       "fibres=:fibres,"
-                       "protein=:protein,"
-                       "salt=:salt,"
-                       "note=:note "
-                       "WHERE id_food=:id_food";
-        QSqlQuery query;
-        query.prepare(Squery);
-        query.bindValue(":id_food", id_item);
-        query.bindValue(":id_brand", idBrand.at(ui->cb_alim_brand->currentIndex()-1));
-        query.bindValue(":reference", ui->le_alim_reference->text());
-        query.bindValue(":weight", ui->le_alim_weight->text().toDouble());
-        query.bindValue(":quantity", ui->sb_alim_quantity->text().toInt());
-        query.bindValue(":expirationDate",ui->de_alim_date->text());
-        query.bindValue(":price", ui->le_alim_price->text().toDouble());
-        query.bindValue(":url", ui->le_alim_url->text());
-        query.bindValue(":energy", ui->le_alim_energy->text().toDouble());
-        query.bindValue(":fat", ui->le_alim_fat->text().toDouble());
-        query.bindValue(":carbohydrates", ui->le_alim_carbohydrates->text().toDouble());
-        query.bindValue(":fibres", ui->le_alim_fibres->text().toDouble());
-        query.bindValue(":protein", ui->le_alim_protein->text().toDouble());
-        query.bindValue(":salt", ui->le_alim_salt->text().toDouble());
-        query.bindValue(":note", ui->te_alim_note->toPlainText());
-
-
-        if(!query.exec()) qDebug()<<"[SQLite] Erreur dans la modification d'un item "<<query.lastError();
+        food.id_food=id_item;
+        sqlite->addModifyFood(food);
+        sqlite->addModifyFood(food);
         close();
     }else{
         QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),tr("Veuillez sélectionner une marque valide."));

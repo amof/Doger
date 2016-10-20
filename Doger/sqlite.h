@@ -5,6 +5,25 @@
 #include <QComboBox>
 #include <QTreeWidget>
 
+struct FoodStruct{
+    int id_food;
+    int id_category;
+    int id_brand;
+    QString reference;
+    double weight;
+    int quantity;
+    QString expirationDate;
+    double price;
+    QString url;
+    double energy;
+    double fat;
+    double carbohydrates;
+    double fibres;
+    double protein;
+    double salt;
+    QString note;
+};
+
 struct ItemStruct{
     int id_item;
     int id_category;
@@ -56,6 +75,8 @@ public:
     void modifyBrand(int id, QString name);
 
     void addModifyItem(ItemStruct itemStruct);
+
+    void addModifyFood(FoodStruct food);
 
     void addModifyList(ListStruct list, int numberOfCategoriesInList, QTreeWidget *listDetail, QVector<int> itemAlreadyExisting);
     void deleteRecordInItemsLists(int id_list, QVector<int> id_item);
