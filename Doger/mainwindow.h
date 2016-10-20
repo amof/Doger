@@ -84,6 +84,10 @@ private slots:
 
     void on_btn_list_modify_clicked();
 
+    void on_btn_save_BEE_clicked();
+
+    void on_btn_estimate_clicked();
+
 public:
 
 
@@ -97,8 +101,13 @@ private:
     QSqlQueryModel *modelFood;
     QSortFilterProxyModel *filterFood;
     QSqlQueryModel *modelList;
-    QSqlQueryModel *modelListDetail;
     int id_list;
+    #define GENDER_FEMALE   0
+    #define GENDER_MALE     1
+    #define CAP_SEDENTAIRE  0
+    #define CAP_PEUACTIF    1
+    #define CAP_ACTIF       2
+    #define CAP_TRESACTIF   3
 };
 
 

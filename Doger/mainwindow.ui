@@ -115,7 +115,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>2</number>
+       <number>4</number>
       </property>
       <widget class="QWidget" name="main">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -1193,20 +1193,35 @@ color: rgb(0, 85, 255);</string>
            </font>
           </property>
           <property name="title">
-           <string>Général</string>
+           <string>Estimation des BEE :</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_19">
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_18">
              <item>
-              <widget class="QLabel" name="label_23">
+              <widget class="QLabel" name="label_29">
                <property name="font">
                 <font>
                  <pointsize>12</pointsize>
                 </font>
                </property>
                <property name="text">
-                <string>Unités :</string>
+                <string>Sexe :</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_37">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Age :</string>
                </property>
                <property name="alignment">
                 <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1228,23 +1243,88 @@ color: rgb(0, 85, 255);</string>
                </property>
               </widget>
              </item>
+             <item>
+              <widget class="QLabel" name="label_30">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Taille (cm)</string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLabel" name="label_31">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Activité physique : </string>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
            <item>
             <layout class="QVBoxLayout" name="verticalLayout_19">
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_23">
+              <layout class="QHBoxLayout" name="horizontalLayout_30">
                <item>
-                <widget class="QComboBox" name="comboBox_2">
+                <widget class="QComboBox" name="cb_config_gender">
                  <item>
                   <property name="text">
-                   <string>SI</string>
+                   <string>Femme</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Homme</string>
                   </property>
                  </item>
                 </widget>
                </item>
                <item>
-                <spacer name="horizontalSpacer_15">
+                <spacer name="horizontalSpacer_23">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_37">
+               <item>
+                <widget class="QSpinBox" name="sb_config_age">
+                 <property name="minimum">
+                  <number>19</number>
+                 </property>
+                 <property name="maximum">
+                  <number>110</number>
+                 </property>
+                 <property name="value">
+                  <number>19</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_29">
                  <property name="orientation">
                   <enum>Qt::Horizontal</enum>
                  </property>
@@ -1261,11 +1341,15 @@ color: rgb(0, 85, 255);</string>
              <item>
               <layout class="QHBoxLayout" name="horizontalLayout_26">
                <item>
-                <widget class="QLineEdit" name="le_config_weight">
-                 <property name="font">
-                  <font>
-                   <pointsize>12</pointsize>
-                  </font>
+                <widget class="QSpinBox" name="sb_config_weight">
+                 <property name="minimum">
+                  <number>1</number>
+                 </property>
+                 <property name="maximum">
+                  <number>200</number>
+                 </property>
+                 <property name="value">
+                  <number>1</number>
                  </property>
                 </widget>
                </item>
@@ -1284,6 +1368,122 @@ color: rgb(0, 85, 255);</string>
                </item>
               </layout>
              </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_34">
+               <item>
+                <widget class="QSpinBox" name="sb_config_height">
+                 <property name="minimum">
+                  <number>10</number>
+                 </property>
+                 <property name="maximum">
+                  <number>300</number>
+                 </property>
+                 <property name="value">
+                  <number>10</number>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_26">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+             <item>
+              <layout class="QHBoxLayout" name="horizontalLayout_35">
+               <item>
+                <widget class="QComboBox" name="cb_config_pa">
+                 <property name="sizeAdjustPolicy">
+                  <enum>QComboBox::AdjustToContents</enum>
+                 </property>
+                 <item>
+                  <property name="text">
+                   <string>Sédentaire</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Peu actif</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Actif</string>
+                  </property>
+                 </item>
+                 <item>
+                  <property name="text">
+                   <string>Très actif</string>
+                  </property>
+                 </item>
+                </widget>
+               </item>
+               <item>
+                <spacer name="horizontalSpacer_27">
+                 <property name="orientation">
+                  <enum>Qt::Horizontal</enum>
+                 </property>
+                 <property name="sizeHint" stdset="0">
+                  <size>
+                   <width>40</width>
+                   <height>20</height>
+                  </size>
+                 </property>
+                </spacer>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="horizontalLayout_36">
+             <item>
+              <spacer name="horizontalSpacer_6">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_estimate">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>Lancer estimation</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <spacer name="horizontalSpacer_28">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
             </layout>
            </item>
           </layout>
@@ -1297,7 +1497,7 @@ color: rgb(0, 85, 255);</string>
            </font>
           </property>
           <property name="title">
-           <string>Besoins énergétiques</string>
+           <string>Besoins énergétiques estimés :</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_18">
            <item>
@@ -1591,7 +1791,7 @@ color: rgb(0, 85, 255);</string>
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="btn_save_3">
+           <widget class="QPushButton" name="btn_save_BEE">
             <property name="font">
              <font>
               <pointsize>12</pointsize>
@@ -1619,7 +1819,7 @@ color: rgb(0, 85, 255);</string>
            </font>
           </property>
           <property name="title">
-           <string>Gestion</string>
+           <string>Gestion :</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_20">
            <item>

@@ -12,7 +12,6 @@ MainWindow::MainWindow(QWidget *parent) :
     modelFood = new QSqlQueryModel();
     filterFood = new QSortFilterProxyModel();
     modelList = new QSqlQueryModel();
-    modelListDetail = new QSqlQueryModel();
 
     id_list=0;
 
@@ -49,7 +48,12 @@ MainWindow::~MainWindow()
 {
     sqlite->closeDB();
     delete sqlite;
-    delete model, modelFood, filter, filterFood;
+    delete model;
+    delete modelFood;
+    delete filter;
+    delete filterFood;
+    delete modelList;
+
     delete ui;
 }
 
@@ -74,17 +78,27 @@ void MainWindow::loadConfig()
         QSettings settings("config.ini",QSettings::IniFormat);
 
         settings.sync();
-        settings.beginGroup("GENERAL");
-        QString units = settings.value("units",8).toString();
+        settings.beginGroup("BODY");
+        int gender = settings.value("gender",0).toInt();
+        int age = settings.value("age",0).toInt();
+        int weight = settings.value("weight",75).toInt();
+        int height = settings.value("height",180).toInt();
+        int physical_activity = settings.value("physical_activity",1).toInt();
         settings.endGroup();
-        settings.beginGroup("NUTRITION");
-        quint16 energy= settings.value("energy",8).toUInt();
-        quint16 fat= settings.value("fat",8).toUInt();
-        quint16 carbohydrates= settings.value("carbohydrates",8).toUInt();
-        quint16 fibres= settings.value("fibres",8).toUInt();
-        quint16 protein= settings.value("protein",8).toUInt();
-        quint16 salt= settings.value("salt",8).toUInt();
+        settings.beginGroup("BEE");
+        quint16 energy= settings.value("energy",2000).toUInt();
+        quint16 fat= settings.value("fat",70).toUInt();
+        quint16 carbohydrates= settings.value("carbohydrates",270).toUInt();
+        quint16 fibres= settings.value("fibres",25).toUInt();
+        quint16 protein= settings.value("protein",50).toUInt();
+        quint16 salt= settings.value("salt",6).toUInt();
         settings.endGroup();
+
+        ui->cb_config_gender->setCurrentIndex(gender);
+        ui->sb_config_age->setValue(age);
+        ui->sb_config_weight->setValue(weight);
+        ui->sb_config_height->setValue(height);
+        ui->cb_config_pa->setCurrentIndex(physical_activity);
 
         ui->le_config_energy->setText(QString::number(energy));
         ui->le_config_fat->setText(QString::number(fat));
@@ -354,6 +368,8 @@ void MainWindow::fillListChart(int id_list){
 
             previousSet=set;
             previousLabel=query.value(0).toString();
+            set=NULL;
+            delete set;
 
         }else if(previousLabel==query.value(0).toString()){
             previousSet->append(value);
@@ -379,6 +395,14 @@ void MainWindow::fillListChart(int id_list){
 
     ui->chartview->setChart(chart);
     ui->chartview->setRenderHint(QPainter::Antialiasing);
+
+    previousSet=NULL;
+    axis=NULL;
+    chart=NULL;
+    delete previousSet;
+    delete axis;
+    delete chart;
+
 }
 
 
@@ -535,4 +559,70 @@ void MainWindow::on_btn_config_brand_delete_clicked()
     refreshDatabase();
 
     ui->statusBar->showMessage("Catégorie supprimée avec succès.", 3000);
+}
+
+void MainWindow::on_btn_estimate_clicked()
+{
+    int bee=0;
+    int gender=ui->cb_config_gender->currentIndex();
+    int age=ui->sb_config_age->value();
+    int weight=ui->sb_config_weight->value();
+    int height=ui->sb_config_height->value();
+    double cap=0;
+
+    switch (ui->cb_config_pa->currentIndex()) {
+    case CAP_SEDENTAIRE:
+        cap=1;
+        break;
+    case CAP_PEUACTIF:
+        if(gender==GENDER_FEMALE)cap=1.12;
+        else if(gender==GENDER_MALE)cap=1.11;
+        break;
+    case CAP_ACTIF:
+        if(gender==GENDER_FEMALE)cap=1.27;
+        else if(gender==GENDER_MALE)cap=1.25;
+        break;
+    case CAP_TRESACTIF:
+        if(gender==GENDER_FEMALE)cap=1.45;
+        else if(gender==GENDER_MALE)cap=1.48;
+        break;
+    default:
+        break;
+    }
+
+    if(gender==GENDER_FEMALE){
+        bee=qRound(354-(6.91*age)+cap*((9.36*weight)+(726*height/100)));
+    }else if(gender==GENDER_MALE){
+        bee=qRound(662-(9.53*age)+cap*((15.91*weight)+(539.6*height/100)));
+    }
+    ui->le_config_energy->setText(QString::number(bee));
+}
+
+void MainWindow::on_btn_save_BEE_clicked()
+{
+    if(QFile("config.ini").exists())
+    {
+        QSettings settings("config.ini",QSettings::IniFormat);
+
+        settings.sync();
+        settings.beginGroup("BODY");
+        settings.setValue("gender",ui->cb_config_gender->currentIndex());
+        settings.setValue("age",ui->sb_config_age->value());
+        settings.setValue("weight",ui->sb_config_weight->value());
+        settings.setValue("height",ui->sb_config_height->value());
+        settings.setValue("physical_activity",ui->cb_config_pa->currentIndex());
+        settings.endGroup();
+        settings.beginGroup("BEE");
+        settings.setValue("energy",ui->le_config_energy->text().toInt());
+        settings.setValue("fat",ui->le_config_fat->text().toInt());
+        settings.setValue("carbohydrates",ui->le_config_carbohydrates->text().toInt());
+        settings.setValue("fibres",ui->le_config_fibres->text().toInt());
+        settings.setValue("protein",ui->le_config_protein->text().toInt());
+        settings.setValue("salt",ui->le_config_salt->text().toInt());
+        settings.endGroup();
+
+    }
+    else{
+        QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),tr("Impossible de sauvegarder \"config.ini\"."));
+    }
 }
