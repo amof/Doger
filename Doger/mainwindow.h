@@ -88,6 +88,10 @@ private slots:
 
     void on_btn_estimate_clicked();
 
+    void on_s_material_weight_valueChanged(int value);
+
+    void on_btn_material_filter_clicked();
+
 public:
 
 
@@ -101,6 +105,8 @@ private:
     QSqlQueryModel *modelFood;
     QSortFilterProxyModel *filterFood;
     QSqlQueryModel *modelList;
+    QSortFilterProxyModel *filterdynList;
+    QSqlQueryModel *dynList;
     int id_list;
     #define GENDER_FEMALE   0
     #define GENDER_MALE     1

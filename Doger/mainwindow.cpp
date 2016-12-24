@@ -12,6 +12,8 @@ MainWindow::MainWindow(QWidget *parent) :
     modelFood = new QSqlQueryModel();
     filterFood = new QSortFilterProxyModel();
     modelList = new QSqlQueryModel();
+    dynList = new QSqlQueryModel();
+    filterdynList = new QSortFilterProxyModel();
 
     id_list=0;
 
@@ -53,6 +55,8 @@ MainWindow::~MainWindow()
     delete filter;
     delete filterFood;
     delete modelList;
+    delete filterdynList;
+    delete dynList;
 
     delete ui;
 }
@@ -124,8 +128,22 @@ void MainWindow::refreshDatabase(){
 
     sqlite->getCategoryBrand(sqlite_CATEGORY, &idCategories, ui->cb_config_categories);
     sqlite->getCategoryBrand(sqlite_BRAND, &idBrand, ui->cb_config_brand);
+    sqlite->getCategoryBrand(sqlite_CATEGORY, &idCategories, ui->cb_material_category);
+    sqlite->getCategoryBrand(sqlite_BRAND, &idBrand, ui->cb_material_brand);
+
     ui->cb_config_categories->insertItem(0,"Nouvelle");
     ui->cb_config_brand->insertItem(0,"Nouvelle");
+    ui->cb_material_category->insertItem(0,"Tous");
+    ui->cb_material_category->setCurrentIndex(0);
+    ui->cb_material_brand->insertItem(0,"Tous");
+    ui->cb_material_brand->setCurrentIndex(0);
+
+    QString maxWeight = "SELECT Items.weight FROM Categories, Brands INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand ORDER BY Items.weight DESC LIMIT 1";
+    QSqlQuery query;
+    query.prepare(maxWeight);
+    query.exec();
+    query.next();
+    ui->s_material_weight->setMaximum(query.value(0).toInt());
 
     QString req="SELECT Items.id_item, Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity, Items.desired FROM Categories, Brands INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand ORDER BY Categories.name ASC, Brands.name ASC, Items.reference ASC";
 
@@ -272,6 +290,16 @@ void MainWindow::on_btn_alimentation_delete_clicked()
 void MainWindow::displayItemWindow(quint8 page, int index){
     ItemWindow *itemwindow = new ItemWindow(0,sqlite, index);
     itemwindow->setPage(page);
+    if(page==PAGE_ALIMENTATION){
+        BEE bee;
+        bee.energy=ui->le_config_energy->text().toDouble();
+        bee.carbohydrates=ui->le_config_carbohydrates->text().toInt();
+        bee.fat=ui->le_config_fat->text().toInt();
+        bee.fibres=ui->le_config_fibres->text().toInt();
+        bee.protein=ui->le_config_protein->text().toInt();
+        bee.salt=ui->le_config_salt->text().toInt();
+        itemwindow->setBEE(bee);
+    }
 
     if(!itemwindow->exec()){
         itemwindow->show();
@@ -292,6 +320,49 @@ void MainWindow::deleteQuestion(QString name, int toDelete, int index){
     }
 }
 
+// Liste dynamique
+
+void MainWindow::on_s_material_weight_valueChanged(int value)
+{
+    ui->l_material_weight->setText(QString::number(value)%"gr");
+}
+
+void MainWindow::on_btn_material_filter_clicked()
+{
+    QString req="SELECT Items.id_item, Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity FROM Categories, Brands INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand WHERE ";
+
+    if(ui->cb_material_weight->currentIndex()==0){
+        req= req %"Items.weight>="%QString::number(ui->s_material_weight->sliderPosition())%" ";
+    }else if(ui->cb_material_weight->currentIndex()==1){
+        req= req %"Items.weight<="%QString::number(ui->s_material_weight->sliderPosition())%" ";
+    }
+    if(ui->cb_material_category->currentIndex()!=0){
+        req= req %"AND Categories.id_category="%QString::number(idCategories.at(ui->cb_material_category->currentIndex()-1))%" ";
+    }
+    if(ui->cb_material_brand->currentIndex()!=0){
+        req= req %"AND Brands.id_brand="%QString::number(idBrand.at(ui->cb_material_brand->currentIndex()-1))%" ";
+    }
+    if(ui->cb_material_wishlist->currentIndex()==1){
+        req= req %"AND Items.desired=1 ";
+    }
+    req = req %"ORDER BY Categories.name ASC, Brands.name ASC, Items.reference ASC";
+
+    dynList->setQuery(req);
+    dynList->setHeaderData(1, Qt::Horizontal, tr("Catégorie"));
+    dynList->setHeaderData(2, Qt::Horizontal, tr("Marque"));
+    dynList->setHeaderData(3, Qt::Horizontal, tr("Modèle"));
+    dynList->setHeaderData(4, Qt::Horizontal, tr("Poids[gr]"));
+    dynList->setHeaderData(5, Qt::Horizontal, tr("Quantité"));
+
+    filterdynList->setSourceModel(dynList);
+
+    ui->tw_dynList->setSortingEnabled(true);
+    ui->tw_dynList->setModel(filterdynList);
+    ui->tw_dynList->hideColumn(0);
+    ui->tw_dynList->resizeColumnsToContents();
+}
+
+
 /************************************************************************/
 /* Listes                                                               */
 /************************************************************************/
@@ -305,7 +376,7 @@ void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
     ui->lbl_weightBackpack->setText(index.sibling(index.row(),2).data().toString());
     ui->lbl_weightSelf->setText(index.sibling(index.row(),3).data().toString());
     ui->lbl_weightBackpack_total->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+ui->lbl_weightBackpack_food->text().toDouble()));
-    ui->gb_listDetail->setTitle("Liste sélectionnée : "+index.sibling(index.row(),1).data().toString());
+    ui->gb_listDetail->setTitle("Liste sélectionnée : "%index.sibling(index.row(),1).data().toString());
 
     fillListChart(index.sibling(index.row(),0).data().toInt());
 
