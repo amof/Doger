@@ -1,6 +1,8 @@
 #include "itemwindow.h"
 #include "ui_itemwindow.h"
 
+BEE myBee;
+
 ItemWindow::ItemWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
     QDialog(parent),
     ui(new Ui::ItemWindow)
@@ -45,6 +47,10 @@ void ItemWindow::setPage(quint8 page){
     ui->stackedWidget->setCurrentIndex(page);
     currentPage=page;
     loadDatabase(id_item);
+}
+
+void ItemWindow::setBEE(BEE beeReceived){
+    myBee=beeReceived;
 }
 
 void ItemWindow::loadDatabase(int index){
@@ -351,4 +357,58 @@ void ItemWindow::on_cb_alim_brand_activated(int index)
     }
 }
 
+// Display %
 
+void ItemWindow::on_le_alim_energy_editingFinished()
+{
+    double val = (ui->le_alim_energy->text().toInt()*100)/(myBee.energy);
+    QString percentage ;
+    percentage = percentage.setNum(val, 'f', 1);
+    ui->l_alim_energy->setText(percentage%"%");
+    ui->s_alim_energy->setValue(int(val));
+}
+
+void ItemWindow::on_le_alim_fat_editingFinished()
+{
+    double val = (ui->le_alim_fat->text().toInt()*100)/(myBee.fat);
+    QString percentage ;
+    percentage = percentage.setNum(val, 'f', 1);
+    ui->l_alim_fat->setText(percentage%"%");
+    ui->s_alim_fat->setValue(int(val));
+}
+
+void ItemWindow::on_le_alim_carbohydrates_editingFinished()
+{
+    double val = (ui->le_alim_carbohydrates->text().toInt()*100)/(myBee.carbohydrates);
+    QString percentage ;
+    percentage = percentage.setNum(val, 'f', 1);
+    ui->l_alim_carbohydrates->setText(percentage%"%");
+    ui->s_alim_carbohydrates->setValue(int(val));
+}
+
+void ItemWindow::on_le_alim_fibres_editingFinished()
+{
+    double val = (ui->le_alim_fibres->text().toInt()*100)/(myBee.fibres);
+    QString percentage ;
+    percentage = percentage.setNum(val, 'f', 1);
+    ui->l_alim_fibres->setText(percentage%"%");
+    ui->s_alim_fibres->setValue(int(val));
+}
+
+void ItemWindow::on_le_alim_protein_editingFinished()
+{
+    double val = (ui->le_alim_protein->text().toInt()*100)/(myBee.protein);
+    QString percentage ;
+    percentage = percentage.setNum(val, 'f', 1);
+    ui->l_alim_protein->setText(percentage%"%");
+    ui->s_alim_protein->setValue(int(val));
+}
+
+void ItemWindow::on_le_alim_salt_editingFinished()
+{
+    double val = (ui->le_alim_salt->text().toInt()*100)/(myBee.salt);
+    QString percentage ;
+    percentage = percentage.setNum(val, 'f', 1);
+    ui->l_alim_salt->setText(percentage%"%");
+    ui->s_alim_salt->setValue(int(val));
+}

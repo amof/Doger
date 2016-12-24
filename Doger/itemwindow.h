@@ -15,6 +15,14 @@
 #include <QLabel>
 #include <QVector>
 
+struct BEE{
+    double energy;
+    quint32 fat;
+    quint32 carbohydrates;
+    quint32 fibres;
+    quint32 protein;
+    quint32 salt;
+};
 
 namespace Ui {
 class ItemWindow;
@@ -27,8 +35,10 @@ class ItemWindow : public QDialog
 public:
     explicit ItemWindow(QWidget *parent = 0, SqLite *sqlitepointer = NULL, int index=0);
     ~ItemWindow();
+
     bool loadFile(const QString &, QLabel *label);
     void setPage(quint8 page);
+    void setBEE(BEE beeReceived);
 
     #define PAGE_MATERIEL 0
     #define PAGE_ALIMENTATION 1
@@ -60,6 +70,18 @@ private slots:
     void on_cb_alim_brand_activated(int index);
 
     void on_btn_item_saveClose_clicked();
+
+    void on_le_alim_energy_editingFinished();
+
+    void on_le_alim_fat_editingFinished();
+
+    void on_le_alim_carbohydrates_editingFinished();
+
+    void on_le_alim_fibres_editingFinished();
+
+    void on_le_alim_protein_editingFinished();
+
+    void on_le_alim_salt_editingFinished();
 
 private:
     Ui::ItemWindow *ui;
