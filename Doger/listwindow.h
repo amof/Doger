@@ -1,7 +1,7 @@
 #ifndef LISTWINDOW_H
 #define LISTWINDOW_H
 
-#include <QDialog>
+#include <QWidget>
 #include <QStandardItemModel>
 #include <QStandardItem>
 #include <QSqlQuery>
@@ -17,12 +17,13 @@ namespace Ui {
 class ListWindow;
 }
 
-class ListWindow : public QDialog
+class ListWindow : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit ListWindow(QWidget *parent = 0, SqLite *sqlitepointer = NULL, int index=0);
+    explicit ListWindow(QWidget *parent = 0, SqLite *sqlitepointer = NULL);
+    setIndex(int index);
     ~ListWindow();
 
 private:
@@ -52,6 +53,7 @@ private slots:
     void getExistingList();
     void on_btn_saveList_clicked();
     void on_tw_items_doubleClicked(const QModelIndex &index);
+
 };
 
 #endif // LISTWINDOW_H

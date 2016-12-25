@@ -1,14 +1,16 @@
 #include "listwindow.h"
 #include "ui_listwindow.h"
-#include <QDebug>
 
-ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
-    QDialog(parent),
+ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer) :
+    QWidget(parent),
     ui(new Ui::ListWindow)
 {
     ui->setupUi(this);
-
     sqlite = sqlitepointer;
+
+}
+
+ListWindow::setIndex(int index){
 
     populatetw_Matos();
     ui->qw_backpack->setAcceptDrops(true);

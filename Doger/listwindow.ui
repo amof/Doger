@@ -1,17 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>ListWindow</class>
- <widget class="QDialog" name="ListWindow">
+ <widget class="QWidget" name="ListWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>835</height>
+    <width>843</width>
+    <height>994</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Gestion de liste</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="ressources.qrc">
+    <normaloff>:/images/backpack_2.png</normaloff>:/images/backpack_2.png</iconset>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout_7">
    <item>
@@ -612,8 +616,6 @@
     </widget>
    </item>
   </layout>
-  <zorder>gb_items</zorder>
-  <zorder></zorder>
  </widget>
  <resources>
   <include location="ressources.qrc"/>

@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
     modelList = new QSqlQueryModel();
     dynList = new QSqlQueryModel();
     filterdynList = new QSortFilterProxyModel();
+    listwindow = new ListWindow(0, sqlite);
 
     id_list=0;
 
@@ -28,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->tw_material->setCurrentIndex(0);
 
-    ui->lbl_backpack->setPixmap(QPixmap(":/images/backpack.png").scaled(75,75,Qt::KeepAspectRatio));
+    ui->lbl_backpack->setPixmap(QPixmap(":/images/backpack_2.png").scaled(75,75,Qt::KeepAspectRatio));
     ui->lbl_self->setPixmap(QPixmap(":/images/self.png").scaled(75,75,Qt::KeepAspectRatio));
 
     ui->tw_listDetail->setColumnCount(6);
@@ -57,6 +58,7 @@ MainWindow::~MainWindow()
     delete modelList;
     delete filterdynList;
     delete dynList;
+    delete listwindow;
 
     delete ui;
 }
@@ -479,14 +481,10 @@ void MainWindow::fillListChart(int id_list){
 
 void MainWindow::on_btn_list_add_clicked()
 {
-    ListWindow *listwindow = new ListWindow(0, sqlite);
 
-    if(!listwindow->exec()){
-        listwindow->show();
-    }
-    delete listwindow;
+    listwindow->setIndex(0);
+    listwindow->show();
 	refreshDatabase();
-
 
 }
 
@@ -494,12 +492,8 @@ void MainWindow::on_btn_list_modify_clicked()
 {
     if(id_list!=0){
 
-        ListWindow *listwindow = new ListWindow(0, sqlite,ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
-
-        if(!listwindow->exec()){
-            listwindow->show();
-        }
-        delete listwindow;
+        listwindow->setIndex(ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
+        listwindow->show();
 		refreshDatabase();
 
     }

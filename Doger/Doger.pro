@@ -10,19 +10,19 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     sqlite.cpp \
     itemwindow.cpp \
-    listwindow.cpp \
-    statisticswindow.cpp
+    statisticswindow.cpp \
+    listwindow.cpp
 
 HEADERS  += mainwindow.h \
     sqlite.h \
     itemwindow.h \
-    listwindow.h \
-    statisticswindow.h
+    statisticswindow.h \
+    listwindow.h
 
 FORMS    += mainwindow.ui \
     itemwindow.ui \
-    listwindow.ui \
-    statisticswindow.ui
+    statisticswindow.ui \
+    listwindow.ui
 
 RESOURCES += \
     ressources.qrc
