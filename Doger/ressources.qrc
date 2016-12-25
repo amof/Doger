@@ -7,5 +7,9 @@
         <file>images/wardrobe.svg</file>
         <file>images/backpack.png</file>
         <file>images/self.png</file>
+        <file>images/list.png</file>
+        <file>images/statistics.png</file>
+        <file>images/backpack_2.png</file>
+        <file>images/doger.png</file>
     </qresource>
 </RCC>
