@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>Doger - v0.1.0 beta1 - @mof</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="ressources.qrc">
+    <normaloff>:/images/doger.png</normaloff>:/images/doger.png</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_15">
     <item>
@@ -115,7 +119,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>4</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="main">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -850,7 +854,7 @@ color: rgb(0, 85, 255);</string>
                      <string/>
                     </property>
                     <property name="pixmap">
-                     <pixmap resource="ressources.qrc">:/images/backpack.png</pixmap>
+                     <pixmap resource="ressources.qrc">:/images/backpack_2.png</pixmap>
                     </property>
                     <property name="scaledContents">
                      <bool>false</bool>

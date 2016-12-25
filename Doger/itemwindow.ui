@@ -1268,7 +1268,7 @@
               <item>
                <widget class="QLabel" name="l_alim_energy">
                 <property name="text">
-                 <string>0%</string>
+                 <string>0.0%</string>
                 </property>
                </widget>
               </item>
@@ -1342,7 +1342,7 @@ border-bottom-left-radius: 9px;
               <item>
                <widget class="QLabel" name="l_alim_fat">
                 <property name="text">
-                 <string>0%</string>
+                 <string>0.0%</string>
                 </property>
                </widget>
               </item>
@@ -1416,7 +1416,7 @@ border-bottom-left-radius: 9px;
               <item>
                <widget class="QLabel" name="l_alim_carbohydrates">
                 <property name="text">
-                 <string>0%</string>
+                 <string>0.0%</string>
                 </property>
                </widget>
               </item>
@@ -1490,7 +1490,7 @@ border-bottom-left-radius: 9px;
               <item>
                <widget class="QLabel" name="l_alim_fibres">
                 <property name="text">
-                 <string>0%</string>
+                 <string>0.0%</string>
                 </property>
                </widget>
               </item>
@@ -1564,7 +1564,7 @@ border-bottom-left-radius: 9px;
               <item>
                <widget class="QLabel" name="l_alim_protein">
                 <property name="text">
-                 <string>0%</string>
+                 <string>0.0%</string>
                 </property>
                </widget>
               </item>
@@ -1635,7 +1635,7 @@ border-bottom-left-radius: 9px;
               <item>
                <widget class="QLabel" name="l_alim_salt">
                 <property name="text">
-                 <string>0%</string>
+                 <string>0.0%</string>
                 </property>
                </widget>
               </item>
