@@ -25,42 +25,9 @@ void StatisticsWindow::fillChartBackpack(int id_list){
     query.bindValue(":id_list", id_list);
     query.exec();
 
-    QPieSeries *series = new QPieSeries();
-    QVector<int> vector;
-    QVector<QString> vectorName;
+    fillChart(ui->cv_backpack, query);
+    ui->cv_backpack->chart()->setTitle("Répartition du sac à dos");
 
-    while(query.next()){
-        vector.append(int((query.value(1).toDouble()/query.value(2).toDouble())*100));
-        vectorName.append(query.value(0).toString());
-    }
-    for(int i=0;i<vector.size();i++){
-        if(i%2==0){
-            //qDebug()<<"ici"<<vectorName[i/2]<<i/2;
-            series->append(vectorName[i/2]+"("+QString::number(vector[i/2])+"%)", vector[i/2]);
-        }else{
-            //qDebug()<<"là"<<vectorName[vector.size()-(i/2)-1]<<i<<QString::number(4-(i/2)-1);
-            series->append(vectorName[vector.size()-(i/2)-1]+"("+QString::number(vector[vector.size()-(i/2)-1])+"%)", vector[vector.size()-(i/2)-1]);
-        }
-    }
-
-
-    QPieSlice *slice = new QPieSlice();
-
-    for(int i=0;i<series->count();i++){
-        slice=series->slices().at(i);
-        slice->setLabelVisible();
-    }
-
-    QChart *chart = new QChart();
-    chart->addSeries(series);
-    chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->legend()->hide();
-    chart->setTitle("Répartition du sac à dos");
-    chart->setTitleFont(QFont("Segoe UI", 14));
-
-
-    ui->cv_backpack->setChart(chart);
-    ui->cv_backpack->setRenderHint(QPainter::Antialiasing);
 }
 
 void StatisticsWindow::fillChartSelf(int id_list){
@@ -71,12 +38,18 @@ void StatisticsWindow::fillChartSelf(int id_list){
     query.bindValue(":id_list", id_list);
     query.exec();
 
+    fillChart(ui->cv_self, query);
+    ui->cv_self->chart()->setTitle("Répartition sur soi");
+
+}
+
+void StatisticsWindow::fillChart(QtCharts::QChartView *chartView, QSqlQuery query){
     QPieSeries *series = new QPieSeries();
     QVector<int> vector;
     QVector<QString> vectorName;
 
     while(query.next()){
-        vector.append(int((query.value(1).toDouble()/query.value(2).toDouble())*100));
+        vector.append(qRound((query.value(1).toDouble()/query.value(2).toDouble())*100));
         vectorName.append(query.value(0).toString());
     }
 
@@ -101,17 +74,16 @@ void StatisticsWindow::fillChartSelf(int id_list){
     QChart *chart = new QChart();
     chart->addSeries(series);
     chart->setAnimationOptions(QChart::SeriesAnimations);
-    chart->setTitle("Répartition sur soi");
     chart->legend()->hide();
     chart->setTitleFont(QFont("Segoe UI", 14));
 
 
-    ui->cv_self->setChart(chart);
-    ui->cv_self->setRenderHint(QPainter::Antialiasing);
+    chartView->setChart(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
 }
 
 void StatisticsWindow::fillMostHeavyItem(int id_list){
-    QString qry="SELECT ItemsLists.totalWeight, Items.reference, Lists.weightBackpack FROM Lists INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON ItemsLists.id_item = Items.id_item WHERE Lists.id_list = :id_list and ItemsLists.backpackOrSelf = \"backpack\" ORDER BY ItemsLists.totalWeight DESC LIMIT 10";
+    QString qry="SELECT ItemsLists.totalWeight, Items.reference, Lists.weightBackpack FROM Lists INNER JOIN ItemsLists ON ItemsLists.id_list = Lists.id_list INNER JOIN Items ON ItemsLists.id_item = Items.id_item WHERE Lists.id_list = :id_list and ItemsLists.backpackOrSelf = \"backpack\" ORDER BY ItemsLists.totalWeight DESC LIMIT 5";
     QSqlQuery query;
     query.prepare(qry);
     query.bindValue(":id_list", id_list);
@@ -122,15 +94,15 @@ void StatisticsWindow::fillMostHeavyItem(int id_list){
     QBarSet *set = new QBarSet("");
     set->setColor(QColor(Qt::green));
 
-    int i=0;
+    double backpackWeight=0;
     while(query.next()){
         double percentage = query.value(0).toDouble()/query.value(2).toDouble();
-        QString label =query.value(1).toString()+"("+QString::number(int(percentage*100))+"%)";
+        backpackWeight=query.value(2).toDouble();
+        QString label =query.value(1).toString()+" ("+QString::number(query.value(0).toDouble()) +"gr-"+QString::number(qRound(percentage*100))+"%)";
         categories.insert(0,label);
         set->insert(0,query.value(0).toDouble());
-        i++;
-
     }
+
     series->append(set);
 
     QBarCategoryAxis *axis = new QBarCategoryAxis();
@@ -141,6 +113,7 @@ void StatisticsWindow::fillMostHeavyItem(int id_list){
     chart->setAnimationOptions(QChart::SeriesAnimations);
     chart->createDefaultAxes();
     chart->legend()->hide();
+    chart->axisX()->setMax(QVariant(backpackWeight));
     chart->setAxisY(axis, series);
 
     chart->setTitle("Items les plus lourd dans le sac à dos");
