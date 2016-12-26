@@ -17,7 +17,7 @@
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="page">
       <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -264,6 +264,9 @@
                 <font>
                  <pointsize>12</pointsize>
                 </font>
+               </property>
+               <property name="toolTip">
+                <string>Ajouter une catégorie dans &quot;Configuration&quot;</string>
                </property>
                <property name="sizeAdjustPolicy">
                 <enum>QComboBox::AdjustToContents</enum>
@@ -810,7 +813,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Marque :</string>
+                 <string>Marque:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -825,7 +828,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Référence :</string>
+                 <string>Référence:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -840,7 +843,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Poids net:</string>
+                 <string>Poids net (gr):</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -855,7 +858,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Quantité :</string>
+                 <string>Quantité:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -870,7 +873,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Date péremption :</string>
+                 <string>Date péremption:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -885,7 +888,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>Prix :</string>
+                 <string>Prix:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -906,7 +909,7 @@
                  </font>
                 </property>
                 <property name="text">
-                 <string>URL :</string>
+                 <string>URL:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1137,7 +1140,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Energie (KCal) :</string>
+               <string>Energie (KCal):</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1152,7 +1155,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Lipides :</string>
+               <string>Lipides (gr):</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1167,7 +1170,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Glucides :</string>
+               <string>Glucides (gr):</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1188,7 +1191,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Fibres :</string>
+               <string>Fibres (gr):</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1209,7 +1212,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Protéines :</string>
+               <string>Protéines (gr):</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -1230,7 +1233,7 @@
                </font>
               </property>
               <property name="text">
-               <string>Sel :</string>
+               <string>Sel (gr):</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>

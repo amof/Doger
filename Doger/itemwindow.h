@@ -13,15 +13,16 @@
 #include <QSettings>
 #include <QString>
 #include <QLabel>
+#include <QSlider>
 #include <QVector>
 
 struct BEE{
     double energy;
-    quint32 fat;
-    quint32 carbohydrates;
-    quint32 fibres;
-    quint32 protein;
-    quint32 salt;
+    double fat;
+    double carbohydrates;
+    double fibres;
+    double protein;
+    double salt;
 };
 
 namespace Ui {
@@ -47,7 +48,8 @@ private slots:
     void setImage(const QImage &newImage, QLabel *label);
 
     void loadDatabase(int index);
-
+    void displayPercentage(QLineEdit *le, double refValue, QSlider *slider, QLabel *labelPercentage);
+    double replaceDotWithComma(QString value);
 
     void on_btn_item_loadImage_clicked();
 
@@ -57,7 +59,7 @@ private slots:
 
     void on_btn_alim_deleteImage_clicked();
 
-    void on_btn_item_save_clicked();
+    bool on_btn_item_save_clicked();
 
     void on_cb_item_brand_activated(int index);
 
