@@ -135,17 +135,21 @@ void MainWindow::refreshDatabase(){
 
     ui->cb_config_categories->insertItem(0,"Nouvelle");
     ui->cb_config_brand->insertItem(0,"Nouvelle");
-    ui->cb_material_category->insertItem(0,"Tous");
+    ui->cb_material_category->insertItem(0,"Toutes");
     ui->cb_material_category->setCurrentIndex(0);
-    ui->cb_material_brand->insertItem(0,"Tous");
+    ui->cb_material_brand->insertItem(0,"Toutes");
     ui->cb_material_brand->setCurrentIndex(0);
 
     QString maxWeight = "SELECT Items.weight FROM Categories, Brands INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand ORDER BY Items.weight DESC LIMIT 1";
     QSqlQuery query;
     query.prepare(maxWeight);
     query.exec();
-    query.next();
-    ui->s_material_weight->setMaximum(query.value(0).toInt());
+    if(query.isValid()){
+        ui->s_material_weight->setMaximum(query.value(0).toInt());
+    }
+    else{
+        ui->s_material_weight->setMaximum(0);
+    }
 
     QString req="SELECT Items.id_item, Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity, Items.desired FROM Categories, Brands INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand ORDER BY Categories.name ASC, Brands.name ASC, Items.reference ASC";
 
@@ -218,9 +222,10 @@ void MainWindow::on_btn_liste_clicked()
 
 void MainWindow::on_btn_alimentation_clicked()
 {
-    ui->stackedWidget->setCurrentIndex(3);
+    QMessageBox::information(this, "Non disponible", "Cette fonctionnalité n'est pas encore disponible.");
+    /*ui->stackedWidget->setCurrentIndex(3);
     ui->frame_title->show();
-    ui->lbl_title->setText("Plans alimentaires");
+    ui->lbl_title->setText("Plans alimentaires");*/
 }
 
 void MainWindow::on_btn_config_clicked()
@@ -291,17 +296,17 @@ void MainWindow::on_btn_alimentation_delete_clicked()
 
 void MainWindow::displayItemWindow(quint8 page, int index){
     ItemWindow *itemwindow = new ItemWindow(0,sqlite, index);
-    itemwindow->setPage(page);
     if(page==PAGE_ALIMENTATION){
         BEE bee;
         bee.energy=ui->le_config_energy->text().toDouble();
-        bee.carbohydrates=ui->le_config_carbohydrates->text().toInt();
-        bee.fat=ui->le_config_fat->text().toInt();
-        bee.fibres=ui->le_config_fibres->text().toInt();
-        bee.protein=ui->le_config_protein->text().toInt();
-        bee.salt=ui->le_config_salt->text().toInt();
+        bee.carbohydrates=ui->le_config_carbohydrates->text().toDouble();
+        bee.fat=ui->le_config_fat->text().toDouble();
+        bee.fibres=ui->le_config_fibres->text().toDouble();
+        bee.protein=ui->le_config_protein->text().toDouble();
+        bee.salt=ui->le_config_salt->text().toDouble();
         itemwindow->setBEE(bee);
     }
+    itemwindow->setPage(page);
 
     if(!itemwindow->exec()){
         itemwindow->show();
@@ -349,6 +354,7 @@ void MainWindow::on_btn_material_filter_clicked()
     }
     req = req %"ORDER BY Categories.name ASC, Brands.name ASC, Items.reference ASC";
 
+    qDebug()<<"[MAIN] Dynamic list request:"<<req;
     dynList->setQuery(req);
     dynList->setHeaderData(1, Qt::Horizontal, tr("Catégorie"));
     dynList->setHeaderData(2, Qt::Horizontal, tr("Marque"));
@@ -502,11 +508,11 @@ void MainWindow::on_btn_list_modify_clicked()
 
 void MainWindow::on_btn_list_delete_clicked()
 {
-
-    deleteQuestion(ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),1).data().toString(),
-                   sqlite_LIST,
-                   ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
-
+    if(id_list!=0){
+        deleteQuestion(ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),1).data().toString(),
+                       sqlite_LIST,
+                       ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
+    }
 }
 
 void MainWindow::on_btn_matos_stats_clicked()
@@ -685,6 +691,7 @@ void MainWindow::on_btn_save_BEE_clicked()
         settings.setValue("protein",ui->le_config_protein->text().toInt());
         settings.setValue("salt",ui->le_config_salt->text().toInt());
         settings.endGroup();
+        ui->statusBar->showMessage("La configuration a été correctement enregistrée.", 3000);
 
     }
     else{
