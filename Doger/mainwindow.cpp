@@ -14,7 +14,6 @@ MainWindow::MainWindow(QWidget *parent) :
     modelList = new QSqlQueryModel();
     dynList = new QSqlQueryModel();
     filterdynList = new QSortFilterProxyModel();
-    listwindow = new ListWindow(0, sqlite);
 
     id_list=0;
 
@@ -58,7 +57,6 @@ MainWindow::~MainWindow()
     delete modelList;
     delete filterdynList;
     delete dynList;
-    delete listwindow;
 
     delete ui;
 }
@@ -307,6 +305,7 @@ void MainWindow::displayItemWindow(quint8 page, int index){
         itemwindow->setBEE(bee);
     }
     itemwindow->setPage(page);
+    itemwindow->setWindowFlags(Qt::Widget);
 
     if(!itemwindow->exec()){
         itemwindow->show();
@@ -487,10 +486,14 @@ void MainWindow::fillListChart(int id_list){
 
 void MainWindow::on_btn_list_add_clicked()
 {
+    ListWindow *listwindow = new ListWindow(0, sqlite);
+    listwindow->setWindowFlags(Qt::Widget);
+    if(!listwindow->exec()){
+        listwindow->show();
+    }
+    delete listwindow;
+    refreshDatabase();
 
-    listwindow->setIndex(0);
-    listwindow->show();
-	refreshDatabase();
 
 }
 
@@ -498,9 +501,13 @@ void MainWindow::on_btn_list_modify_clicked()
 {
     if(id_list!=0){
 
-        listwindow->setIndex(ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
-        listwindow->show();
-		refreshDatabase();
+        ListWindow *listwindow = new ListWindow(0, sqlite,ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
+        listwindow->setWindowFlags(Qt::Widget);
+        if(!listwindow->exec()){
+            listwindow->show();
+        }
+        delete listwindow;
+        refreshDatabase();
 
     }
 }

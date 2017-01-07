@@ -107,7 +107,6 @@ private:
     QSqlQueryModel *modelList;
     QSortFilterProxyModel *filterdynList;
     QSqlQueryModel *dynList;
-    ListWindow *listwindow;
     int id_list;
     #define GENDER_FEMALE   0
     #define GENDER_MALE     1
