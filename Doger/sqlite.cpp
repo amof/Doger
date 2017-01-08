@@ -15,7 +15,6 @@ void SqLite::openDB(QString dbName){
     db = QSqlDatabase::addDatabase("QSQLITE");
     db.setDatabaseName(dbName);
 
-    db.open();
     if(!db.open()) qDebug()<<"[SQLite] Problème lors de l'ouverture de la BD "<<db.lastError();
 
 
@@ -233,6 +232,8 @@ void SqLite::addModifyList(ListStruct list, int numberOfCategoriesInList, QTreeW
     QString Squery="";
     QSqlQuery query;
 
+    // Add/Update list in List table
+
     if(list.id_list==0){
         Squery="INSERT INTO Lists VALUES (NULL , :name, :hikeDate, :creationDate, :id_foodPlan, :weightBackpack, :weightSelf, :note)";
     }else if(list.id_list>0){
@@ -259,107 +260,110 @@ void SqLite::addModifyList(ListStruct list, int numberOfCategoriesInList, QTreeW
         query.bindValue(":id_list", list.id_list);
     }
 
+    if(query.exec()){
+        int id_list=list.id_list;
 
-    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'une liste "<<query.lastError();
-
-    int id_list=0;
-
-    if(list.id_list>0){
-        id_list=list.id_list;
-    }else{
-        id_list = query.lastInsertId().toInt();
-    }
-
-    // Update
-    if(itemAlreadyExisting.count()>0){
-        Squery="UPDATE ItemsLists SET quantity=:quantity,"
-                               "totalWeight=:totalWeight,"
-                               "backpackOrSelf=:backpackOrSelf "
-                               "WHERE id_list=:id_list and id_item=:id_item";
-        db.transaction();
-
-        QList<QTreeWidgetItem*> itemFound ;
-        QTreeWidgetItem *parent ;
-
-        for(int i=0;i<itemAlreadyExisting.count();i++){
-            itemFound = listDetail->findItems(QString::number(itemAlreadyExisting.at(i)), Qt::MatchExactly|Qt::MatchRecursive, qListWidget(l_id));
-
-            QString backpackOrSelf="";
-            double weight=0;
-
-            if(itemFound[0]->text(qListWidget(l_weightBackpack)).isEmpty()){
-                backpackOrSelf="self";
-                weight = itemFound[0]->text(qListWidget(l_weightSelf)).toDouble();
-            }
-            else if(itemFound[0]->text(qListWidget(l_weightSelf)).isEmpty()){
-                backpackOrSelf="backpack";
-                weight = itemFound[0]->text(qListWidget(l_weightBackpack)).toDouble();
-            }
-
-            query.clear();
-            query.prepare(Squery);
-            query.bindValue(":quantity",itemFound[0]->text(qListWidget(l_quantity)).toInt());
-            query.bindValue(":totalWeight",weight);
-            query.bindValue(":backpackOrSelf",backpackOrSelf);
-            query.bindValue(":id_list",list.id_list);
-            query.bindValue(":id_item",itemAlreadyExisting.at(i));
-
-            if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'update d'un item de liste "<<query.lastError();
-
-            parent = itemFound[0]->parent();
-            parent->removeChild(itemFound[0]);
-
-            if(parent->childCount()==0){
-                listDetail->takeTopLevelItem(listDetail->indexOfTopLevelItem(parent));
-                if(numberOfCategoriesInList>0)numberOfCategoriesInList--;
-            }
-
+        if(list.id_list==0){
+            id_list = query.lastInsertId().toInt();
+        }else{
+            qDebug()<<"[SqLite] error last insertID";
         }
 
-        if(!db.commit())qDebug()<<"[SQLite] Erreur dans le commit de l'update de la liste "<<db.lastError();
+        // Update items in ItemsLists
+        if(itemAlreadyExisting.count()>0){
+            Squery="UPDATE ItemsLists SET quantity=:quantity,"
+                                   "totalWeight=:totalWeight,"
+                                   "backpackOrSelf=:backpackOrSelf "
+                                   "WHERE id_list=:id_list and id_item=:id_item";
+            db.transaction();
 
-    }
+            QList<QTreeWidgetItem*> itemFound ;
+            QTreeWidgetItem *parent ;
 
-    if(id_list!=0){
+            for(int i=0;i<itemAlreadyExisting.count();i++){
+                itemFound = listDetail->findItems(QString::number(itemAlreadyExisting.at(i)), Qt::MatchExactly|Qt::MatchRecursive, qListWidget(l_id));
 
-        Squery="INSERT INTO ItemsLists VALUES (:id_item , :id_list, :quantity, :totalWeight, :backpackOrSelf)";
-        db.transaction();
+                QString backpackOrSelf="";
+                double weight=0;
 
-        QTreeWidgetItem *item = new QTreeWidgetItem;
-
-        for(int i=0;i<numberOfCategoriesInList;i++){
-
-            item = listDetail->topLevelItem(i);
-            QString backpackOrSelf="";
-            double weight=0;
-
-            for(int j=0;j<item->childCount();j++){
-                if(item->child(j)->text(qListWidget(l_weightBackpack)).isEmpty()){
+                if(itemFound[0]->text(qListWidget(l_weightBackpack)).isEmpty()){
                     backpackOrSelf="self";
-                    weight = item->child(j)->text(qListWidget(l_weightSelf)).toDouble();
+                    weight = itemFound[0]->text(qListWidget(l_weightSelf)).toDouble();
                 }
-                else if(item->child(j)->text(qListWidget(l_weightSelf)).isEmpty()){
+                else if(itemFound[0]->text(qListWidget(l_weightSelf)).isEmpty()){
                     backpackOrSelf="backpack";
-                    weight = item->child(j)->text(qListWidget(l_weightBackpack)).toDouble();
+                    weight = itemFound[0]->text(qListWidget(l_weightBackpack)).toDouble();
                 }
+
                 query.clear();
                 query.prepare(Squery);
-
-                query.bindValue(":id_item",item->child(j)->text(qListWidget(l_id)).toInt());
-                query.bindValue(":id_list",id_list);
-                query.bindValue(":quantity",item->child(j)->text(qListWidget(l_quantity)).toInt());
+                query.bindValue(":quantity",itemFound[0]->text(qListWidget(l_quantity)).toInt());
                 query.bindValue(":totalWeight",weight);
                 query.bindValue(":backpackOrSelf",backpackOrSelf);
+                query.bindValue(":id_list",list.id_list);
+                query.bindValue(":id_item",itemAlreadyExisting.at(i));
 
-                if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un item de liste "<<query.lastError();
+                if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'update d'un item de liste "<<query.lastError();
+
+                parent = itemFound[0]->parent();
+                parent->removeChild(itemFound[0]);
+
+                if(parent->childCount()==0){
+                    listDetail->takeTopLevelItem(listDetail->indexOfTopLevelItem(parent));
+                    if(numberOfCategoriesInList>0)numberOfCategoriesInList--;
+                }
 
             }
+
+            if(!db.commit())qDebug()<<"[SQLite] Erreur dans le commit de l'update de la liste "<<db.lastError();
+
         }
-        if(!db.commit())qDebug()<<"[SQLite] Erreur dans le commit de l'ajout de la liste "<<db.lastError();
 
-        item = NULL;
-        delete item;
 
+        if(id_list!=0){
+
+            Squery="INSERT INTO ItemsLists VALUES (:id_item , :id_list, :quantity, :totalWeight, :backpackOrSelf)";
+            db.transaction();
+
+            QTreeWidgetItem *item = new QTreeWidgetItem;
+
+            for(int i=0;i<numberOfCategoriesInList;i++){
+
+                item = listDetail->topLevelItem(i);
+                QString backpackOrSelf="";
+                double weight=0;
+
+                for(int j=0;j<item->childCount();j++){
+                    if(item->child(j)->text(qListWidget(l_weightBackpack)).isEmpty()){
+                        backpackOrSelf="self";
+                        weight = item->child(j)->text(qListWidget(l_weightSelf)).toDouble();
+                    }
+                    else if(item->child(j)->text(qListWidget(l_weightSelf)).isEmpty()){
+                        backpackOrSelf="backpack";
+                        weight = item->child(j)->text(qListWidget(l_weightBackpack)).toDouble();
+                    }
+                    query.clear();
+                    query.prepare(Squery);
+
+                    query.bindValue(":id_item",item->child(j)->text(qListWidget(l_id)).toInt());
+                    query.bindValue(":id_list",id_list);
+                    query.bindValue(":quantity",item->child(j)->text(qListWidget(l_quantity)).toInt());
+                    query.bindValue(":totalWeight",weight);
+                    query.bindValue(":backpackOrSelf",backpackOrSelf);
+
+                    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans l'ajout d'un item de liste "<<query.lastError();
+
+                }
+            }
+            if(!db.commit())qDebug()<<"[SQLite] Erreur dans le commit de l'ajout de la liste "<<db.lastError();
+
+            item = NULL;
+            delete item;
+
+        }
+    }
+    else{
+        qDebug()<<"[SQLite] Erreur dans l'ajout d'une liste "<<query.lastError();
     }
 }
 
@@ -385,7 +389,8 @@ void SqLite::getCategoryBrand(int sqlite_name, QVector<int> *vector, QComboBox *
     }
 
     query.prepare(Squery);
-    query.exec();
+    if(!query.exec()) qDebug()<<"[SQLite] Erreur dans la recupération de la catégorie/marque "<<query.lastError();
+
 
     while(query.next())
     {
