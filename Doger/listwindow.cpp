@@ -7,6 +7,7 @@ ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
     ui(new Ui::ListWindow)
 {
     ui->setupUi(this);
+    this->setWindowFlags(Qt::Widget);
 
     sqlite = sqlitepointer;
 
@@ -150,59 +151,54 @@ void ListWindow::on_dockWidget_topLevelChanged(bool topLevel)
 }
 
 bool ListWindow::eventFilter(QObject* obj, QEvent* event){
-
-    if (obj == ui->qw_backpack || obj==ui->qw_self) {
+    try{
+        if (obj == ui->qw_backpack || obj==ui->qw_self) {
+                if (event->type() == QEvent::DragEnter) {
+                    QDragEnterEvent* ev = (QDragEnterEvent*)event;
+                    if(ev->source()==ui->tw_items){
+                         ev->acceptProposedAction();
+                    }
+                }
+                else if (event->type() == QEvent::Drop) {
+                    QDropEvent* ev = (QDropEvent*)event;
+                    ev->setDropAction(Qt::CopyAction);
+                    ev->accept();
+                    QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
+                    int id_item = decodeByteArray(ba).at(qItemsView(i_id)).toInt();
+                    if(obj==ui->qw_backpack){insertItemInQTree(id_item, qListWidget(l_weightBackpack),1);}
+                    else if(obj==ui->qw_self){ insertItemInQTree(id_item, qListWidget(l_weightSelf),1);}
+            }
+        }
+        else if (obj==ui->qw_delete){
             if (event->type() == QEvent::DragEnter) {
                 QDragEnterEvent* ev = (QDragEnterEvent*)event;
-                if(ev->source()==ui->tw_items){
+                if(ev->source()==ui->tw_list){
                      ev->acceptProposedAction();
                 }
-                delete ev;
-
             }
             else if (event->type() == QEvent::Drop) {
                 QDropEvent* ev = (QDropEvent*)event;
                 ev->setDropAction(Qt::CopyAction);
                 ev->accept();
                 QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
-                int id_item = decodeByteArray(ba).at(qItemsView(i_id)).toInt();
-                if(obj==ui->qw_backpack){insertItemInQTree(id_item, qListWidget(l_weightBackpack),1);}
-                else if(obj==ui->qw_self){ insertItemInQTree(id_item, qListWidget(l_weightSelf),1);}
-                delete ev;
-
-        }
-    }
-    else if (obj==ui->qw_delete){
-        if (event->type() == QEvent::DragEnter) {
-            QDragEnterEvent* ev = (QDragEnterEvent*)event;
-            if(ev->source()==ui->tw_list){
-                 ev->acceptProposedAction();
+                removeItemInQTree(decodeByteArray(ba));
             }
-            delete ev;
-
         }
-        else if (event->type() == QEvent::Drop) {
-            QDropEvent* ev = (QDropEvent*)event;
-            ev->setDropAction(Qt::CopyAction);
-            ev->accept();
-            QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
-            removeItemInQTree(decodeByteArray(ba));
-            delete ev;
-        }
-    }
-    else if (event->type()==QEvent::KeyPress){
-        QKeyEvent* pKeyEvent=static_cast<QKeyEvent*>(event);
-        if (pKeyEvent->key() == Qt::Key_Delete){
-            if (ui->tw_list->hasFocus() && !ui->tw_list->selectedItems().isEmpty()&&ui->tw_list->currentItem()->childCount()==0){
-                QVector<QString> vector;
-                for(int i=0;i<length_qListWidget;i++){
-                  vector.append(ui->tw_list->selectedItems()[0]->text(i));
+        if (event->type()==QEvent::KeyPress){
+            QKeyEvent* pKeyEvent=static_cast<QKeyEvent*>(event);
+            if (pKeyEvent->key() == Qt::Key_Delete){
+                if (ui->tw_list->hasFocus() && !ui->tw_list->selectedItems().isEmpty()&&ui->tw_list->currentItem()->childCount()==0){
+                    QVector<QString> vector;
+                    for(int i=0;i<length_qListWidget;i++){
+                      vector.append(ui->tw_list->selectedItems()[0]->text(i));
+                    }
+                    removeItemInQTree(vector);
                 }
-                removeItemInQTree(vector);
             }
         }
-        delete pKeyEvent;
-    }
+    }catch(...){
+            qDebug()<<"Error unknown";
+        }
 }
 
 void ListWindow::getExistingList(){
