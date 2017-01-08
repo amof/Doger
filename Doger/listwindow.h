@@ -12,6 +12,7 @@
 #include <QTreeWidgetItem>
 #include <sqlite.h>
 #include <QElapsedTimer>
+#include <QMessageBox>
 
 namespace Ui {
 class ListWindow;

@@ -270,6 +270,13 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
 
             int weight = child->text(qListWidget(place)).toDouble() + query.value(3).toDouble();
             child->setText(qListWidget(place),QString::number(weight));
+
+            // Display total weight value
+            if(qListWidget(place)==qListWidget(l_weightBackpack)&&!child->text(qListWidget(l_weightBackpack)).isEmpty()){
+                ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
+            }else if(qListWidget(place)==qListWidget(l_weightSelf)&&!child->text(qListWidget(l_weightSelf)).isEmpty()){
+                ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
+            }
         }
 
         // Add root/child
@@ -295,13 +302,6 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
 
         }
         ui->tw_list->setColumnWidth(5,0);
-
-        // Display total weight value
-        if(qListWidget(place)==qListWidget(l_weightBackpack)){
-            ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
-        }else if(qListWidget(place)==qListWidget(l_weightSelf)){
-            ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
-        }
 
         // Delete pointer
         child = NULL;
@@ -407,7 +407,9 @@ void ListWindow::on_btn_saveList_clicked()
             sqlite->addModifyList(list, numberOfCategoriesInList, ui->tw_list, list_id_item);
 
         }
-
+        close();
+    }else{
+        QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),tr("Veuillez entrer un nom de liste."));
     }
     qDebug() <<"[ListWindow] Time Elapsed in (on_btn_saveList_clicked):" <<timer.elapsed()<<" msec";
 
