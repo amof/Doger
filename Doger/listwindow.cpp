@@ -10,8 +10,9 @@ ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
     this->setWindowFlags(Qt::Widget);
 
     sqlite = sqlitepointer;
+    numberOfCategoriesInList=0;
 
-    populatetw_Matos();
+    // Authorize drag/drop events
     ui->qw_backpack->setAcceptDrops(true);
     ui->qw_backpack->installEventFilter(this);
     ui->qw_self->setAcceptDrops(true);
@@ -21,24 +22,30 @@ ListWindow::ListWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
     ui->tw_list->setColumnCount(length_qListWidget);
     ui->tw_list->installEventFilter(this);
 
+    // Put labels in header of list
     QStringList headerLabels;
     headerLabels.push_back(tr("Marque"));
     headerLabels.push_back(tr("Modèle"));
-    headerLabels.push_back(tr("Poids Sac"));
-    headerLabels.push_back(tr("Poids Soi"));
+    headerLabels.push_back(tr("Poids Sac[gr]"));
+    headerLabels.push_back(tr("Poids Soi[gr]"));
     headerLabels.push_back(tr("Quantité"));
     headerLabels.push_back(tr("ID"));
-    headerLabels.push_back(tr("Poids individuel"));
+    headerLabels.push_back(tr("Poids individuel[gr]"));
     ui->tw_list->setHeaderLabels(headerLabels);
+    ui->tw_list->setColumnWidth(5,0);
 
+    // Set scale to pictures
     ui->lbl_backpack->setPixmap(QPixmap(":/images/backpack.png").scaled(100,100,Qt::KeepAspectRatio));
     ui->lbl_self->setPixmap(QPixmap(":/images/self.png").scaled(100,100,Qt::KeepAspectRatio));
 
+    // Set current date
     ui->de_hikeDate->setDate(QDate::currentDate());
     ui->de_listDate->setDate(QDate::currentDate());
 
-    numberOfCategoriesInList=0;
+    // Retrieve all the existing items
+    populatetw_Matos();
 
+    // In case of a modification of the list
     if(index!=0){
         whatToDo=TO_UPDATE;
         id_list=index;
@@ -53,14 +60,9 @@ ListWindow::~ListWindow()
     delete ui;
 }
 
-void ListWindow::on_dockWidget_visibilityChanged(bool visible)
-{
-    if(visible==false){
-        ui->dockWidget->setFloating(false);
-        ui->dockWidget->raise();
-        ui->dockWidget->show();
-    }
-}
+/************************************************************************/
+/* Retrieve items/list                                                  */
+/************************************************************************/
 
 void ListWindow::populatetw_Matos()
 {
@@ -69,6 +71,7 @@ void ListWindow::populatetw_Matos()
     query.prepare(qry);
     query.exec();
 
+    // Retrieve all existing items
     QStandardItemModel *m = new QStandardItemModel(this);
     QString prevCategoryName="";
     QList<QStandardItem *> preparedRow;
@@ -95,49 +98,74 @@ void ListWindow::populatetw_Matos()
 
     m->setHeaderData(0, Qt::Horizontal, tr("Marque"));
     m->setHeaderData(1, Qt::Horizontal, tr("Modèle"));
-    m->setHeaderData(2, Qt::Horizontal, tr("Poids"));
+    m->setHeaderData(2, Qt::Horizontal, tr("Poids[gr]"));
+    m->setHeaderData(3, Qt::Horizontal, tr("ID"));
     ui->tw_items->setModel(m);
-    //ui->tw_matos->hideColumn(3);
 
-    for(int i=0;i++;i<m->columnCount()){
+    // Nice presentation
+    ui->tw_items->expandAll();
+    for(int i=0;i<m->columnCount()-1;i++){
         ui->tw_items->resizeColumnToContents(i);
     }
+    ui->tw_items->collapseAll();
 
     m=NULL;
     delete m;
 }
 
+void ListWindow::getExistingList(){
+    QElapsedTimer timer;
+    timer.start();
 
-QList<QStandardItem *> ListWindow::prepareRow(const QString &first,
-                                                const QString &second,
-                                                const QString &third,
-                                                const QString &forth)
-{
-    QList<QStandardItem *> rowItems;
-    rowItems << new QStandardItem(first);
-    rowItems << new QStandardItem(second);
-    rowItems << new QStandardItem(third);
-    rowItems << new QStandardItem(forth);
-    return rowItems;
-}
+    // Protection against filled list
+    list_id_item_toDelete.clear();
 
-QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
-    QVector<QString> data;
+    // Retrive list properties
+    QString qry="SELECT Lists.name, Lists.hikeDate, Lists.creationDate, Lists.id_foodPlan, Lists.weightBackpack, Lists.weightSelf, Lists.note FROM Lists WHERE Lists.id_list=:id_list";
+    QSqlQuery query;
+    query.prepare(qry);
+    query.bindValue(":id_list",id_list);
+    query.exec();
 
-    QDataStream *ds = new QDataStream(ba);
+    if(query.next()){
+        // Display values retrieved
+        ui->le_listName->setText(query.value(0).toString());
+        ui->de_hikeDate->setDate(QDate::fromString(query.value(1).toString(), "dd-MM-yy"));
+        ui->de_listDate->setDate(QDate::fromString(query.value(2).toString(), "dd-MM-yy"));
+        ui->te_note->setText(query.value(6).toString());
 
-    while(!ds->atEnd()){
-        int row, col;
-        QMap<int,  QVariant> roleDataMap;
-        *ds >> row >> col >> roleDataMap;
-        //qDebug()<<QString::number(row)<<QString::number(col)<<roleDataMap<<roleDataMap[0].toString();
-        data.append(roleDataMap[0].toString());
+        // Retrieve elements in list
+        qry="SELECT ItemsLists.id_item, ItemsLists.backpackOrSelf, ItemsLists.quantity FROM ItemsLists WHERE ItemsLists.id_list=:id_list";
+        query.clear();
+        query.prepare(qry);
+        query.bindValue(":id_list",id_list);
+        query.exec();
+
+        while(query.next()){
+            list_id_item.append(query.value(0).toInt());
+            if(query.value(1)=="backpack"){
+                insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightBackpack),query.value(2).toInt());
+            }else if(query.value(1)=="self"){
+                insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightSelf),query.value(2).toInt());
+            }
+        }
     }
 
-    delete ds;
-    return data;
+    qDebug() <<"[ListWindow] Time Elapsed in (getExistingList):" <<timer.elapsed()<<" msec";
 }
 
+/************************************************************************/
+/* Manage the dockWidget                                                */
+/************************************************************************/
+
+void ListWindow::on_dockWidget_visibilityChanged(bool visible)
+{
+    if(visible==false){
+        ui->dockWidget->setFloating(false);
+        ui->dockWidget->raise();
+        ui->dockWidget->show();
+    }
+}
 
 void ListWindow::on_dockWidget_topLevelChanged(bool topLevel)
 {
@@ -150,29 +178,17 @@ void ListWindow::on_dockWidget_topLevelChanged(bool topLevel)
     }
 }
 
+/************************************************************************/
+/* Handle insertion/deletion in QTreeWidget                             */
+/************************************************************************/
+
 bool ListWindow::eventFilter(QObject* obj, QEvent* event){
-    try{
-        if (obj == ui->qw_backpack || obj==ui->qw_self) {
-                if (event->type() == QEvent::DragEnter) {
-                    QDragEnterEvent* ev = (QDragEnterEvent*)event;
-                    if(ev->source()==ui->tw_items){
-                         ev->acceptProposedAction();
-                    }
-                }
-                else if (event->type() == QEvent::Drop) {
-                    QDropEvent* ev = (QDropEvent*)event;
-                    ev->setDropAction(Qt::CopyAction);
-                    ev->accept();
-                    QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
-                    int id_item = decodeByteArray(ba).at(qItemsView(i_id)).toInt();
-                    if(obj==ui->qw_backpack){insertItemInQTree(id_item, qListWidget(l_weightBackpack),1);}
-                    else if(obj==ui->qw_self){ insertItemInQTree(id_item, qListWidget(l_weightSelf),1);}
-            }
-        }
-        else if (obj==ui->qw_delete){
+
+    // If an item is dragged and dropped into one of the two areas permitted, add it to the list
+    if (obj == ui->qw_backpack || obj==ui->qw_self) {
             if (event->type() == QEvent::DragEnter) {
                 QDragEnterEvent* ev = (QDragEnterEvent*)event;
-                if(ev->source()==ui->tw_list){
+                if(ev->source()==ui->tw_items){
                      ev->acceptProposedAction();
                 }
             }
@@ -181,59 +197,46 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                 ev->setDropAction(Qt::CopyAction);
                 ev->accept();
                 QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
-                removeItemInQTree(decodeByteArray(ba));
+                int id_item = decodeByteArray(ba).at(qItemsView(i_id)).toInt();
+                if(obj==ui->qw_backpack){insertItemInQTree(id_item, qListWidget(l_weightBackpack),1);}
+                else if(obj==ui->qw_self){ insertItemInQTree(id_item, qListWidget(l_weightSelf),1);}
+        }
+    }
+    // If an item is dragged and dropped into suppresion area, remove it from the list
+    else if (obj==ui->qw_delete){
+        if (event->type() == QEvent::DragEnter) {
+            QDragEnterEvent* ev = (QDragEnterEvent*)event;
+            if(ev->source()==ui->tw_list){
+                 ev->acceptProposedAction();
             }
         }
-        if (event->type()==QEvent::KeyPress){
-            QKeyEvent* pKeyEvent=static_cast<QKeyEvent*>(event);
-            if (pKeyEvent->key() == Qt::Key_Delete){
-                if (ui->tw_list->hasFocus() && !ui->tw_list->selectedItems().isEmpty()&&ui->tw_list->currentItem()->childCount()==0){
-                    QVector<QString> vector;
-                    for(int i=0;i<length_qListWidget;i++){
-                      vector.append(ui->tw_list->selectedItems()[0]->text(i));
-                    }
-                    removeItemInQTree(vector);
-                }
-            }
-        }
-    }catch(...){
-            qDebug()<<"Error unknown";
-        }
-}
-
-void ListWindow::getExistingList(){
-    QElapsedTimer timer;
-    timer.start();
-    list_id_item_toDelete.clear();
-
-    QString qry="SELECT Lists.name, Lists.hikeDate, Lists.creationDate, Lists.id_foodPlan, Lists.weightBackpack, Lists.weightSelf, Lists.note FROM Lists WHERE Lists.id_list=:id_list";
-    QSqlQuery query;
-    query.prepare(qry);
-    query.bindValue(":id_list",id_list);
-    query.exec();
-    query.next();
-
-    ui->le_listName->setText(query.value(0).toString());
-    ui->de_hikeDate->setDate(QDate::fromString(query.value(1).toString(), "dd-MM-yy"));
-    ui->de_listDate->setDate(QDate::fromString(query.value(2).toString(), "dd-MM-yy"));
-    ui->te_note->setText(query.value(6).toString());
-
-    qry="SELECT ItemsLists.id_item, ItemsLists.backpackOrSelf, ItemsLists.quantity FROM ItemsLists WHERE ItemsLists.id_list=:id_list";
-    query.clear();
-    query.prepare(qry);
-    query.bindValue(":id_list",id_list);
-    query.exec();
-
-    while(query.next()){
-        list_id_item.append(query.value(0).toInt());
-        if(query.value(1)=="backpack"){
-            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightBackpack),query.value(2).toInt());
-        }else if(query.value(1)=="self"){
-            insertItemInQTree(query.value(0).toInt(), qListWidget(l_weightSelf),query.value(2).toInt());
+        else if (event->type() == QEvent::Drop) {
+            QDropEvent* ev = (QDropEvent*)event;
+            ev->setDropAction(Qt::CopyAction);
+            ev->accept();
+            QByteArray ba = ev->mimeData()->data("application/x-qabstractitemmodeldatalist");
+            removeItemInQTree(decodeByteArray(ba));
         }
     }
 
-    qDebug() <<"[ListWindow] Time Elapsed in (getExistingList):" <<timer.elapsed()<<" msec";
+    // If delete key is pressed, remove item from list
+    if (event->type()==QEvent::KeyPress){
+        QKeyEvent* pKeyEvent=static_cast<QKeyEvent*>(event);
+        if (pKeyEvent->key() == Qt::Key_Delete){
+            if (ui->tw_list->hasFocus() && !ui->tw_list->selectedItems().isEmpty()&&ui->tw_list->currentItem()->childCount()==0){
+                QVector<QString> vector;
+                for(int i=0;i<length_qListWidget;i++){
+                  vector.append(ui->tw_list->selectedItems()[0]->text(i));
+                }
+                removeItemInQTree(vector);
+            }
+        }
+    }
+}
+
+void ListWindow::on_tw_items_doubleClicked(const QModelIndex &index)
+{
+    insertItemInQTree(index.sibling(index.row(),3).data().toInt(), qListWidget(l_weightBackpack), 1);
 }
 
 void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQuantity){
@@ -285,10 +288,13 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
             rootSearch[0]->setText(qListWidget(place),QString::number(weight));
         }
 
+        // Allow nice presentation
         ui->tw_list->expandAll();
         for(int i=0;i<ui->tw_list->columnCount();i++){
             ui->tw_list->resizeColumnToContents(i);
+
         }
+        ui->tw_list->setColumnWidth(5,0);
 
         // Display total weight value
         if(qListWidget(place)==qListWidget(l_weightBackpack)){
@@ -297,18 +303,22 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
             ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
         }
 
+        // Delete pointer
         child = NULL;
         delete child;
     }
+
 }
 
 void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
 
+    // Handle suppression of item if the list already existed
     if(whatToDo==TO_UPDATE && list_id_item.contains(vectorFromList[qListWidget(l_id)].toInt())){
         list_id_item_toDelete.append(vectorFromList[qListWidget(l_id)].toInt());
         list_id_item.removeAt(list_id_item.indexOf(vectorFromList[qListWidget(l_id)].toInt()));
     }
 
+    // Retrieve weight and quantity
     int quantity = vectorFromList[qListWidget(l_quantity)].toInt();
     QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(vectorFromList[qListWidget(l_id)], Qt::MatchExactly|Qt::MatchRecursive,qListWidget(l_id));
     QTreeWidgetItem* root = childSearch[0]->parent();
@@ -321,7 +331,6 @@ void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
         int totalWeightBackpack = root->text(qListWidget(l_weightBackpack)).toDouble();
         childSearch[0]->setText(qListWidget(l_weightBackpack),QString::number(weightBackpack-weight));
         root->setText(qListWidget(l_weightBackpack),QString::number(totalWeightBackpack-weight));
-
 
     }else if(childSearch[0]->text(qListWidget(l_weightBackpack)).isEmpty()){
         int weightSelf = childSearch[0]->text(qListWidget(l_weightSelf)).toDouble();
@@ -350,8 +359,19 @@ void ListWindow::removeItemInQTree(QVector<QString> vectorFromList){
         ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()-weight));
     }
 
+    // Delete pointer
     root=NULL;
     delete root;
+}
+
+/************************************************************************/
+/* Save list                                                            */
+/************************************************************************/
+
+void ListWindow::duplicateList(QString listName){
+    whatToDo=TO_INSERT;
+    ui->le_listName->setText(listName);
+    on_btn_saveList_clicked();
 }
 
 void ListWindow::on_btn_saveList_clicked()
@@ -371,13 +391,15 @@ void ListWindow::on_btn_saveList_clicked()
 
     if(ui->le_listName->text()!=""){
         if(whatToDo==TO_INSERT){
+            qDebug()<<"[ListWindow] Adding new list ";
             QVector<int> nothing;
             sqlite->addModifyList(list, numberOfCategoriesInList, ui->tw_list, nothing);
 
         }else if(whatToDo==TO_UPDATE){
-            qDebug()<<"To Delete : "<<list_id_item_toDelete;
-            qDebug()<<"To Update : "<<list_id_item;
             list.id_list=id_list;
+            qDebug()<<"[ListWindow] Updating list with ID : "<<list.id_list;
+            qDebug()<<"[ListWindow] To Delete : "<<list_id_item_toDelete;
+            qDebug()<<"[ListWindow] To Update : "<<list_id_item;
             // Delete
             sqlite->deleteRecordInItemsLists(id_list, list_id_item_toDelete);
             list_id_item_toDelete.clear();
@@ -391,7 +413,35 @@ void ListWindow::on_btn_saveList_clicked()
 
 }
 
-void ListWindow::on_tw_items_doubleClicked(const QModelIndex &index)
+/************************************************************************/
+/* Various functions                                                    */
+/************************************************************************/
+
+// Decode a QByteArray and put into a QVector of QString
+QVector<QString> ListWindow::decodeByteArray(QByteArray ba){
+    QVector<QString> data;
+
+    QDataStream *ds = new QDataStream(ba);
+
+    while(!ds->atEnd()){
+        int row, col;
+        QMap<int,  QVariant> roleDataMap;
+        *ds >> row >> col >> roleDataMap;
+        //qDebug()<<QString::number(row)<<QString::number(col)<<roleDataMap<<roleDataMap[0].toString();
+        data.append(roleDataMap[0].toString());
+    }
+
+    delete ds;
+    return data;
+}
+
+// Create a QList of QStandardItem to be put in QTreeView
+QList<QStandardItem *> ListWindow::prepareRow(const QString &first, const QString &second, const QString &third, const QString &forth)
 {
-    insertItemInQTree(index.sibling(index.row(),3).data().toInt(), qListWidget(l_weightBackpack), 1);
+    QList<QStandardItem *> rowItems;
+    rowItems << new QStandardItem(first);
+    rowItems << new QStandardItem(second);
+    rowItems << new QStandardItem(third);
+    rowItems << new QStandardItem(forth);
+    return rowItems;
 }
