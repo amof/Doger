@@ -11,5 +11,10 @@
         <file>images/statistics.png</file>
         <file>images/backpack_2.png</file>
         <file>images/doger.png</file>
+        <file>images/copy.png</file>
+        <file>images/deleteList.png</file>
+        <file>images/editList.png</file>
+        <file>images/newList.png</file>
+        <file>images/saveList.png</file>
     </qresource>
 </RCC>

@@ -10,8 +10,13 @@
     <height>749</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>10</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
-   <string>Doger - v0.1.0 RC1</string>
+   <string>Doger - v0.1.0 RC2</string>
   </property>
   <property name="windowIcon">
    <iconset resource="ressources.qrc">
@@ -749,8 +754,21 @@ color: rgb(0, 85, 255);</string>
                    <pointsize>12</pointsize>
                   </font>
                  </property>
+                 <property name="toolTip">
+                  <string>Ajouter une liste</string>
+                 </property>
                  <property name="text">
-                  <string>Ajouter</string>
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="ressources.qrc">
+                   <normaloff>:/images/newList.png</normaloff>:/images/newList.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>40</width>
+                   <height>40</height>
+                  </size>
                  </property>
                 </widget>
                </item>
@@ -761,8 +779,21 @@ color: rgb(0, 85, 255);</string>
                    <pointsize>12</pointsize>
                   </font>
                  </property>
+                 <property name="toolTip">
+                  <string>Editer la liste</string>
+                 </property>
                  <property name="text">
-                  <string>Modifier</string>
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="ressources.qrc">
+                   <normaloff>:/images/editList.png</normaloff>:/images/editList.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>40</width>
+                   <height>40</height>
+                  </size>
                  </property>
                 </widget>
                </item>
@@ -773,8 +804,46 @@ color: rgb(0, 85, 255);</string>
                    <pointsize>12</pointsize>
                   </font>
                  </property>
+                 <property name="toolTip">
+                  <string>Supprimer la liste</string>
+                 </property>
                  <property name="text">
-                  <string>Supprimer</string>
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="ressources.qrc">
+                   <normaloff>:/images/deleteList.png</normaloff>:/images/deleteList.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>40</width>
+                   <height>40</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btn_list_duplicate">
+                 <property name="font">
+                  <font>
+                   <pointsize>12</pointsize>
+                  </font>
+                 </property>
+                 <property name="toolTip">
+                  <string>Dupliquer la liste</string>
+                 </property>
+                 <property name="text">
+                  <string/>
+                 </property>
+                 <property name="icon">
+                  <iconset resource="ressources.qrc">
+                   <normaloff>:/images/copy.png</normaloff>:/images/copy.png</iconset>
+                 </property>
+                 <property name="iconSize">
+                  <size>
+                   <width>40</width>
+                   <height>40</height>
+                  </size>
                  </property>
                 </widget>
                </item>
@@ -820,7 +889,7 @@ color: rgb(0, 85, 255);</string>
            </font>
           </property>
           <property name="title">
-           <string>Liste sélectionnée :</string>
+           <string>Liste sélectionnée : aucune</string>
           </property>
           <layout class="QHBoxLayout" name="horizontalLayout_5">
            <item>
@@ -1083,7 +1152,13 @@ color: rgb(0, 85, 255);</string>
             </layout>
            </item>
            <item>
-            <widget class="QTableWidget" name="tw_listDetail"/>
+            <widget class="QTableWidget" name="tw_listDetail">
+             <property name="font">
+              <font>
+               <pointsize>10</pointsize>
+              </font>
+             </property>
+            </widget>
            </item>
           </layout>
          </widget>
@@ -2269,7 +2344,7 @@ color: rgb(0, 85, 255);</string>
                </font>
               </property>
               <property name="text">
-               <string>v0.1.0 RC1</string>
+               <string>v0.1.0 RC2</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>
@@ -2465,7 +2540,7 @@ p, li { white-space: pre-wrap; }
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFichier">
