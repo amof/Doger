@@ -14,6 +14,7 @@
 #include <QtCharts/QBarCategoryAxis>
 #include <QtCharts/QHorizontalPercentBarSeries>
 #include <QStyledItemDelegate>
+#include <QInputDialog>
 
 namespace Ui {
 class MainWindow;
@@ -35,6 +36,7 @@ private slots:
     void displayItemWindow(quint8 page, int index);
     void deleteQuestion(QString name, int toDelete, int index);
     void fillListChart(int id_list);
+    void cleanListDisplayed();
     void on_btn_materiel_clicked();
 
     void on_btn_liste_clicked();
@@ -91,6 +93,8 @@ private slots:
     void on_s_material_weight_valueChanged(int value);
 
     void on_btn_material_filter_clicked();
+
+    void on_btn_list_duplicate_clicked();
 
 public:
 

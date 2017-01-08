@@ -35,9 +35,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->tw_listDetail->setHorizontalHeaderItem(0, new QTableWidgetItem("Catégorie"));
     ui->tw_listDetail->setHorizontalHeaderItem(1, new QTableWidgetItem("Marque"));
     ui->tw_listDetail->setHorizontalHeaderItem(2, new QTableWidgetItem("Référence"));
-    ui->tw_listDetail->setHorizontalHeaderItem(3, new QTableWidgetItem("Poids"));
+    ui->tw_listDetail->setHorizontalHeaderItem(3, new QTableWidgetItem("Poids[gr]"));
     ui->tw_listDetail->setHorizontalHeaderItem(4, new QTableWidgetItem("Quantité"));
     ui->tw_listDetail->setHorizontalHeaderItem(5, new QTableWidgetItem("SAD/Soi"));
+
+    ui->btn_list_delete->setEnabled(false);
+    ui->btn_list_modify->setEnabled(false);
+    ui->btn_list_duplicate->setEnabled(false);
 
     loadConfig();
     loadDatabase();
@@ -417,6 +421,10 @@ void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
 
     ui->tw_listDetail->resizeColumnsToContents();
 
+    ui->btn_list_delete->setEnabled(true);
+    ui->btn_list_modify->setEnabled(true);
+    ui->btn_list_duplicate->setEnabled(true);
+
 }
 
 void MainWindow::fillListChart(int id_list){
@@ -487,12 +495,13 @@ void MainWindow::fillListChart(int id_list){
 void MainWindow::on_btn_list_add_clicked()
 {
     ListWindow *listwindow = new ListWindow(0, sqlite);
-    listwindow->setWindowFlags(Qt::Widget);
+    listwindow->setWindowTitle("Ajouter une liste");
     if(!listwindow->exec()){
         listwindow->show();
     }
     delete listwindow;
     refreshDatabase();
+    cleanListDisplayed();
 
 
 }
@@ -502,16 +511,16 @@ void MainWindow::on_btn_list_modify_clicked()
     if(id_list!=0){
 
         ListWindow *listwindow = new ListWindow(0, sqlite,ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
-        listwindow->setWindowFlags(Qt::Widget);
+        listwindow->setWindowTitle("Modification de la liste: "%ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),1).data().toString());
         if(!listwindow->exec()){
             listwindow->show();
         }
         delete listwindow;
         refreshDatabase();
+        cleanListDisplayed();
 
     }
 }
-
 
 void MainWindow::on_btn_list_delete_clicked()
 {
@@ -519,7 +528,41 @@ void MainWindow::on_btn_list_delete_clicked()
         deleteQuestion(ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),1).data().toString(),
                        sqlite_LIST,
                        ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
+        cleanListDisplayed();
     }
+}
+
+void MainWindow::on_btn_list_duplicate_clicked()
+{
+    if(id_list!=0){
+        bool ok;
+        QString newListName = QInputDialog::getText(this, tr("Dupliquer la liste"),
+                                           tr("Nom de la nouvelle liste:"), QLineEdit::Normal,
+                                           "", &ok);
+        if (ok && !newListName.isEmpty())
+          qDebug()<<"[MainWindow] New list name: "<<newListName;
+    }
+}
+
+void MainWindow::cleanListDisplayed()
+{
+    ui->btn_list_delete->setEnabled(false);
+    ui->btn_list_modify->setEnabled(false);
+    ui->btn_list_duplicate->setEnabled(false);
+
+    ui->chartview->setChart(new QChart());
+    ui->lbl_weightBackpack->setText("0");
+    ui->lbl_weightSelf->setText("0");
+    ui->lbl_weightBackpack_total->setText("0");
+    ui->gb_listDetail->setTitle("Liste sélectionnée : aucune");
+
+    int rowCount=ui->tw_listDetail->rowCount();
+    for(int i=0;i<rowCount;i++){
+        ui->tw_listDetail->removeRow(0);
+    }
+
+    id_list=0;
+
 }
 
 void MainWindow::on_btn_matos_stats_clicked()
