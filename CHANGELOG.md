@@ -1,5 +1,9 @@
 # Change Log
 
+## [0.1.0-RC3] - 2017-01-10
+
+- [Fix] Wrong calculus of weight on self/backpack
+
 ## [0.1.0-RC2] - 2017-01-08
 
 - [Fix] Bug when trying to add a new list after editing one
