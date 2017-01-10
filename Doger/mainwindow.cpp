@@ -539,8 +539,17 @@ void MainWindow::on_btn_list_duplicate_clicked()
         QString newListName = QInputDialog::getText(this, tr("Dupliquer la liste"),
                                            tr("Nom de la nouvelle liste:"), QLineEdit::Normal,
                                            "", &ok);
-        if (ok && !newListName.isEmpty())
-          qDebug()<<"[MainWindow] New list name: "<<newListName;
+        if (ok && !newListName.isEmpty()){
+            qDebug()<<"[MainWindow] New list name: "<<newListName;
+            qDebug()<<"[MainWindow] Copy ID from List : "<<ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt();
+            ListWindow *listwindow = new ListWindow(0, sqlite,ui->tv_list->currentIndex().sibling(ui->tv_list->currentIndex().row(),0).data().toInt());
+            listwindow->duplicateList(newListName);
+            delete listwindow;
+            refreshDatabase();
+            cleanListDisplayed();
+            qDebug()<<"[MainWindow] List duplicated";
+
+        }
     }
 }
 

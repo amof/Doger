@@ -240,6 +240,7 @@ void ListWindow::on_tw_items_doubleClicked(const QModelIndex &index)
 }
 
 void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQuantity){
+
     QString qry="SELECT Categories.name, Brands.name, Items.reference, Items.weight, Items.quantity FROM Brands, Categories INNER JOIN Items ON Items.id_category = Categories.id_category AND Items.id_brand = Brands.id_brand WHERE Items.id_item=:id_item";
     QSqlQuery query;
     query.prepare(qry);
@@ -247,6 +248,7 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
     query.exec();
 
     if(query.next()){
+        bool addItemWeightToTotal=false;
         //Child Search
         QList<QTreeWidgetItem*> childSearch = ui->tw_list->findItems(QString::number(id_item), Qt::MatchExactly|Qt::MatchRecursive,qListWidget(l_id));
         QTreeWidgetItem *child = new QTreeWidgetItem();
@@ -255,6 +257,7 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
         QList<QTreeWidgetItem*> rootSearch = ui->tw_list->findItems(query.value(0).toString(), Qt::MatchExactly);
 
         if(childSearch.isEmpty()){
+            addItemWeightToTotal=true;
             child->setText(qListWidget(l_brand),query.value(1).toString());
             child->setText(qListWidget(l_reference),query.value(2).toString());
             child->setText(qListWidget(place),QString::number(query.value(3).toDouble()*defaultQuantity));
@@ -263,6 +266,7 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
             child->setText(qListWidget(l_weight), query.value(3).toString());
 
         }else if(!childSearch.isEmpty() && childSearch[0]->text(qItemsView(place))!=""){
+            addItemWeightToTotal=true;
             child = childSearch[0];
 
             int quantity = child->text(qListWidget(l_quantity)).toInt() + 1;
@@ -270,13 +274,6 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
 
             int weight = child->text(qListWidget(place)).toDouble() + query.value(3).toDouble();
             child->setText(qListWidget(place),QString::number(weight));
-
-            // Display total weight value
-            if(qListWidget(place)==qListWidget(l_weightBackpack)&&!child->text(qListWidget(l_weightBackpack)).isEmpty()){
-                ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
-            }else if(qListWidget(place)==qListWidget(l_weightSelf)&&!child->text(qListWidget(l_weightSelf)).isEmpty()){
-                ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
-            }
         }
 
         // Add root/child
@@ -302,6 +299,13 @@ void ListWindow::insertItemInQTree(int id_item, qListWidget place, int defaultQu
 
         }
         ui->tw_list->setColumnWidth(5,0);
+
+        // Display total weight value
+        if(qListWidget(place)==qListWidget(l_weightBackpack)&&addItemWeightToTotal==true){
+            ui->lbl_weightBackpack->setText(QString::number(ui->lbl_weightBackpack->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
+        }else if(qListWidget(place)==qListWidget(l_weightSelf)&&addItemWeightToTotal==true){
+            ui->lbl_weightSelf->setText(QString::number(ui->lbl_weightSelf->text().toDouble()+(query.value(3).toDouble()*defaultQuantity)));
+        }
 
         // Delete pointer
         child = NULL;
