@@ -40,6 +40,7 @@ private:
     int numberOfCategoriesInList=0;
     QVector<int> list_id_item_toDelete;
     QVector<int> list_id_item;
+    int lastQuantity =-1;
 
     enum qItemsView{i_brand, i_reference, i_weight, i_id};
     enum qListWidget{l_brand, l_reference, l_weightBackpack, l_weightSelf, l_quantity, l_id, l_weight};
@@ -52,6 +53,8 @@ private slots:
     void on_dockWidget_topLevelChanged(bool topLevel);
 
     bool eventFilter(QObject* obj, QEvent* event);
+    void on_tw_list_itemDoubleClicked(QTreeWidgetItem *item, int column);
+    void updateQuantity(QTreeWidgetItem *item);
     void on_tw_items_doubleClicked(const QModelIndex &index);
     void insertItemInQTree(int id_item, qListWidget place, int defaultQuantity);
     void removeItemInQTree(QVector<QString> vectorFromList);
@@ -60,7 +63,6 @@ private slots:
 
     QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third, const QString &forth);
     QVector<QString> decodeByteArray(QByteArray ba);
-
 };
 
 #endif // LISTWINDOW_H
