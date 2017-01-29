@@ -16,7 +16,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>Doger - v0.1.0 RC3</string>
+   <string>Doger - v0.1.0</string>
   </property>
   <property name="windowIcon">
    <iconset resource="ressources.qrc">
@@ -124,7 +124,7 @@
        </font>
       </property>
       <property name="currentIndex">
-       <number>5</number>
+       <number>2</number>
       </property>
       <widget class="QWidget" name="main">
        <layout class="QHBoxLayout" name="horizontalLayout">
@@ -2344,7 +2344,7 @@ color: rgb(0, 85, 255);</string>
                </font>
               </property>
               <property name="text">
-               <string>v0.1.0 RC3</string>
+               <string>v0.1.0</string>
               </property>
               <property name="alignment">
                <set>Qt::AlignCenter</set>

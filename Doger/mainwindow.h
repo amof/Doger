@@ -96,6 +96,8 @@ private slots:
 
     void on_btn_list_duplicate_clicked();
 
+    void on_tv_list_clicked(const QModelIndex &index);
+
 public:
 
 

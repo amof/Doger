@@ -77,6 +77,8 @@ void MainWindow::initActionsConnections()
     connect(ui->actionListes, SIGNAL(triggered()), this, SLOT(on_btn_liste_clicked()));
     connect(ui->actionPlans_alimentation, SIGNAL(triggered()), this, SLOT(on_btn_alimentation_clicked()));
     connect(ui->actionQuitter, SIGNAL(triggered()), this, SLOT(close()));
+    connect(ui->le_config_brandName, SIGNAL(returnPressed()),ui->btn_config_brand_save,SIGNAL(clicked()));
+    connect(ui->le_config_categoryName, SIGNAL(returnPressed()),ui->btn_config_categorie_save,SIGNAL(clicked()));
 }
 
 void MainWindow::loadConfig()
@@ -377,9 +379,10 @@ void MainWindow::on_btn_material_filter_clicked()
 /************************************************************************/
 /* Listes                                                               */
 /************************************************************************/
-
-void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
+void MainWindow::on_tv_list_clicked(const QModelIndex &index)
 {
+    QElapsedTimer timer;
+    timer.start();
     // Clean the QtableWidget
     ui->tw_listDetail->setRowCount(0);
 
@@ -425,6 +428,14 @@ void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
     ui->btn_list_modify->setEnabled(true);
     ui->btn_list_duplicate->setEnabled(true);
 
+    qDebug() <<"[MainWindow] Time Elapsed in (on_tv_list_clicked):" <<timer.elapsed()<<" msec";
+
+}
+
+void MainWindow::on_tv_list_doubleClicked(const QModelIndex &index)
+{
+    Q_UNUSED(index);
+    on_btn_list_modify_clicked();
 }
 
 void MainWindow::fillListChart(int id_list){
@@ -593,6 +604,7 @@ void MainWindow::on_btn_matos_stats_clicked()
 
 void MainWindow::on_cb_config_categories_activated(int index)
 {
+    ui->le_config_categoryName->setFocus();
     if(index==0){
         ui->btn_config_categorie_delete->hide();
         ui->btn_config_categorie_save->show();
@@ -609,6 +621,7 @@ void MainWindow::on_cb_config_categories_activated(int index)
 
 void MainWindow::on_cb_config_brand_activated(int index)
 {
+    ui->le_config_brandName->setFocus();
     if(index==0){
         ui->btn_config_brand_delete->hide();
         ui->btn_config_brand_save->show();
@@ -626,11 +639,11 @@ void MainWindow::on_cb_config_brand_activated(int index)
 void MainWindow::on_btn_config_categorie_save_clicked()
 {
     QString text = "";
-    if(ui->cb_config_categories->currentIndex()==0){
+    if(ui->cb_config_categories->currentIndex()==0&&ui->le_config_categoryName->text()!=""){
         sqlite->addCategoryBrand(sqlite_CATEGORY,ui->le_config_categoryName->text());
         text="Ajout d'une catégorie avec succès.";
     }
-    else{
+    else if(ui->cb_config_categories->currentIndex()>0){
         sqlite->modifyCategory(idCategories.at(ui->cb_config_categories->currentIndex()-1),ui->le_config_categoryName->text());
         text="Modification d'une catégorie avec succès.";
     }
@@ -660,11 +673,11 @@ void MainWindow::on_btn_config_categorie_delete_clicked()
 void MainWindow::on_btn_config_brand_save_clicked()
 {
     QString text = "";
-    if(ui->cb_config_brand->currentIndex()==0){
+    if(ui->cb_config_brand->currentIndex()==0&&ui->le_config_brandName->text()!=""){
         sqlite->addCategoryBrand(sqlite_BRAND, ui->le_config_brandName->text());
         text="Ajout d'une marque avec succès.";
     }
-    else{
+    else if(ui->cb_config_brand->currentIndex()>0){
         sqlite->modifyBrand(idBrand.at(ui->cb_config_brand->currentIndex()-1),ui->le_config_brandName->text());
         text="Modification d'une marque avec succès.";
     }
