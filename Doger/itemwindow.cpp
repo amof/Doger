@@ -14,6 +14,8 @@ ItemWindow::ItemWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
     ui->lbl_item_picture->setPixmap(QPixmap(":/images/noImage.png").scaled(100,100,Qt::KeepAspectRatio));
     ui->lbl_alim_picture->setPixmap(QPixmap(":/images/noImage.png").scaled(100,100,Qt::KeepAspectRatio));
 
+    ui->le_item_category->hide();
+    ui->btn_item_newCategory->hide();
     ui->le_item_brand->hide();
     ui->btn_item_newBrand->hide();
     ui->le_alim_brand->hide();
@@ -30,10 +32,11 @@ ItemWindow::ItemWindow(QWidget *parent, SqLite *sqlitepointer, int index) :
 
     ui->stackedWidget->setCurrentIndex(0);
 
+    connect(ui->le_item_category, SIGNAL(returnPressed()),ui->btn_item_newCategory,SIGNAL(clicked()));
+    connect(ui->le_item_brand, SIGNAL(returnPressed()),ui->btn_item_newBrand,SIGNAL(clicked()));
+    connect(ui->le_alim_brand, SIGNAL(returnPressed()),ui->btn_alim_newBrand,SIGNAL(clicked()));
+
     if(index!=0)whatToDo=TO_UPDATE; id_item=index;
-
-    sqlite->getCategoryBrand(sqlite_CATEGORY, &idCategories, ui->cb_item_categorie);
-
 }
 
 ItemWindow::~ItemWindow()
@@ -54,8 +57,11 @@ void ItemWindow::setBEE(BEE beeReceived){
 }
 
 void ItemWindow::loadDatabase(int index){
+
+    sqlite->getCategoryBrand(sqlite_CATEGORY, &idCategories, ui->cb_item_categorie);
     sqlite->getCategoryBrand(sqlite_BRAND, &idBrand, ui->cb_item_brand);
     sqlite->getCategoryBrand(sqlite_BRAND, &idBrand, ui->cb_alim_brand);
+    ui->cb_item_categorie->insertItem(0,"Nouvelle");
     ui->cb_item_brand->insertItem(0,"Nouvelle");
     ui->cb_alim_brand->insertItem(0,"Nouvelle");
 
@@ -276,6 +282,7 @@ void ItemWindow::on_cb_item_brand_activated(int index)
     if(index==0){
         ui->le_item_brand->show();
         ui->btn_item_newBrand->show();
+        ui->le_item_brand->setFocus();
     }else{
         ui->le_item_brand->hide();
         ui->btn_item_newBrand->hide();
@@ -300,6 +307,37 @@ void ItemWindow::on_btn_item_newBrand_clicked()
                                  .arg(ui->le_item_brand->text()));
     }
 
+}
+
+void ItemWindow::on_cb_item_categorie_activated(int index)
+{
+    if(index==0){
+        ui->le_item_category->show();
+        ui->btn_item_newCategory->show();
+        ui->le_item_category->setFocus();
+    }else{
+        ui->le_item_category->hide();
+        ui->btn_item_newCategory->hide();
+    }
+}
+
+void ItemWindow::on_btn_item_newCategory_clicked()
+{
+    if(ui->cb_item_categorie->findText(ui->le_item_category->text())==-1){
+        ui->le_item_category->hide();
+        ui->btn_item_newCategory->hide();
+        if(ui->cb_item_categorie->currentIndex()==0){
+            sqlite->addCategoryBrand(sqlite_CATEGORY, ui->le_item_category->text());
+        }
+        loadDatabase(id_item);
+        ui->cb_item_categorie->setCurrentText(ui->le_item_category->text());
+        ui->le_item_category->clear();
+
+    }else{
+        QMessageBox::warning(this, QGuiApplication::applicationDisplayName(),
+                                 tr("Une marque portant le nom de %1 existe déjà.")
+                                 .arg(ui->le_item_category->text()));
+    }
 }
 
 /************************************************************************/

@@ -85,6 +85,9 @@ private slots:
 
     void on_le_alim_salt_editingFinished();
 
+    void on_cb_item_categorie_activated(int index);
+
+    void on_btn_item_newCategory_clicked();
 private:
     Ui::ItemWindow *ui;
     QImage image;

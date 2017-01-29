@@ -72,6 +72,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="btn_item_loadImage">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="font">
               <font>
                <pointsize>12</pointsize>
@@ -84,6 +87,9 @@
            </item>
            <item>
             <widget class="QPushButton" name="btn_item_deleteImage">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="font">
               <font>
                <pointsize>12</pointsize>
@@ -271,16 +277,27 @@
                <property name="sizeAdjustPolicy">
                 <enum>QComboBox::AdjustToContents</enum>
                </property>
-               <item>
-                <property name="text">
-                 <string>Couchage</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Portage</string>
-                </property>
-               </item>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLineEdit" name="le_item_category">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_item_newCategory">
+               <property name="font">
+                <font>
+                 <pointsize>12</pointsize>
+                </font>
+               </property>
+               <property name="text">
+                <string>OK</string>
+               </property>
               </widget>
              </item>
              <item>
@@ -316,21 +333,6 @@
                <property name="sizeAdjustPolicy">
                 <enum>QComboBox::AdjustToContents</enum>
                </property>
-               <item>
-                <property name="text">
-                 <string>Ajouter</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Sawyer</string>
-                </property>
-               </item>
-               <item>
-                <property name="text">
-                 <string>Sea to Summit</string>
-                </property>
-               </item>
               </widget>
              </item>
              <item>
@@ -766,6 +768,9 @@
               </item>
               <item>
                <widget class="QPushButton" name="btn_alim_loadImage">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
@@ -778,6 +783,9 @@
               </item>
               <item>
                <widget class="QPushButton" name="btn_alim_deleteImage">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>12</pointsize>
@@ -1787,6 +1795,53 @@ border-bottom-left-radius: 9px;
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>cb_item_categorie</tabstop>
+  <tabstop>cb_item_brand</tabstop>
+  <tabstop>le_item_brand</tabstop>
+  <tabstop>btn_item_newBrand</tabstop>
+  <tabstop>le_item_reference</tabstop>
+  <tabstop>le_item_weight</tabstop>
+  <tabstop>le_item_volume</tabstop>
+  <tabstop>sb_item_quantity</tabstop>
+  <tabstop>de_item_date</tabstop>
+  <tabstop>le_item_price</tabstop>
+  <tabstop>cb_item_desired</tabstop>
+  <tabstop>le_item_url</tabstop>
+  <tabstop>le_item_url_rl</tabstop>
+  <tabstop>te_item_note</tabstop>
+  <tabstop>btn_item_save</tabstop>
+  <tabstop>btn_item_saveClose</tabstop>
+  <tabstop>cb_alim_brand</tabstop>
+  <tabstop>le_alim_brand</tabstop>
+  <tabstop>btn_alim_newBrand</tabstop>
+  <tabstop>le_alim_reference</tabstop>
+  <tabstop>le_alim_weight</tabstop>
+  <tabstop>sb_alim_quantity</tabstop>
+  <tabstop>de_alim_date</tabstop>
+  <tabstop>le_alim_price</tabstop>
+  <tabstop>le_alim_url</tabstop>
+  <tabstop>le_alim_energy</tabstop>
+  <tabstop>s_alim_energy</tabstop>
+  <tabstop>le_alim_fat</tabstop>
+  <tabstop>s_alim_fat</tabstop>
+  <tabstop>le_alim_carbohydrates</tabstop>
+  <tabstop>s_alim_carbohydrates</tabstop>
+  <tabstop>le_alim_fibres</tabstop>
+  <tabstop>s_alim_fibres</tabstop>
+  <tabstop>le_alim_protein</tabstop>
+  <tabstop>s_alim_protein</tabstop>
+  <tabstop>le_alim_salt</tabstop>
+  <tabstop>s_alim_salt</tabstop>
+  <tabstop>te_alim_note</tabstop>
+  <tabstop>btn_alim_save</tabstop>
+  <tabstop>le_item_category</tabstop>
+  <tabstop>btn_item_newCategory</tabstop>
+  <tabstop>btn_item_loadImage</tabstop>
+  <tabstop>btn_item_deleteImage</tabstop>
+  <tabstop>btn_alim_loadImage</tabstop>
+  <tabstop>btn_alim_deleteImage</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
