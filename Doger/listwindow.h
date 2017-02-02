@@ -55,6 +55,7 @@ private slots:
     bool eventFilter(QObject* obj, QEvent* event);
     void on_tw_list_itemDoubleClicked(QTreeWidgetItem *item, int column);
     void updateQuantity(QTreeWidgetItem *item);
+    void addCategoryToList(qListWidget place);
     void on_tw_items_doubleClicked(const QModelIndex &index);
     void insertItemInQTree(int id_item, qListWidget place, int defaultQuantity);
     void removeItemInQTree(QVector<QString> vectorFromList);
