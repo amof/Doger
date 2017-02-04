@@ -221,9 +221,7 @@ bool ListWindow::eventFilter(QObject* obj, QEvent* event){
                     }else{ // Move item
                         moveItemTo(ui->tw_list->currentItem(),place);
                     }
-
                 }
-
         }
     }
     // If an item is dragged and dropped into suppresion area, remove it from the list
@@ -466,7 +464,7 @@ void ListWindow::updateQuantity(QTreeWidgetItem *item, int quantity, qListWidget
         }else if(place == qListWidget(l_weightBackpack)){
             lbl = ui->lbl_weightBackpack;
         }
-        qDebug()<<"[ListWindow]updateQuantity item: "<<item<<" parent: "<<item->parent();
+
         double newWeight = item->text(qListWidget(l_weight)).toDouble()*quantity;
         double oldWeight = item->text(place).toDouble();
         double parentWeight = item->parent()->text(place).toDouble();
