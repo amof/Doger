@@ -54,14 +54,15 @@ private slots:
 
     bool eventFilter(QObject* obj, QEvent* event);
     void on_tw_list_itemDoubleClicked(QTreeWidgetItem *item, int column);
-    void updateQuantity(QTreeWidgetItem *item);
     void addCategoryToList(qListWidget place);
+    void moveItemTo(QTreeWidgetItem *item, qListWidget place);
     void on_tw_items_doubleClicked(const QModelIndex &index);
     void insertItemInQTree(int id_item, qListWidget place, int defaultQuantity);
-    void removeItemInQTree(QVector<QString> vectorFromList);
+    void removeItemFromQTree(QTreeWidgetItem *item);
 
     void on_btn_saveList_clicked();
 
+    void updateQuantity(QTreeWidgetItem *item, int quantity, qListWidget place);
     QList<QStandardItem *> prepareRow(const QString &first, const QString &second, const QString &third, const QString &forth);
     QVector<QString> decodeByteArray(QByteArray ba);
 };
