@@ -1,4 +1,8 @@
 #include "statisticswindow.h"
+#include "qbarcategoryaxis.h"
+#include "qbarset.h"
+#include "qhorizontalbarseries.h"
+#include "qpieseries.h"
 #include "ui_statisticswindow.h"
 
 StatisticsWindow::StatisticsWindow(QWidget *parent, int id_list) :
@@ -43,7 +47,7 @@ void StatisticsWindow::fillChartSelf(int id_list){
 
 }
 
-void StatisticsWindow::fillChart(QtCharts::QChartView *chartView, QSqlQuery query){
+void StatisticsWindow::fillChart(QChartView *chartView, QSqlQuery query){
     QPieSeries *series = new QPieSeries();
     QVector<int> vector;
     QVector<QString> vectorName;

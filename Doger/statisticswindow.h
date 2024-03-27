@@ -1,17 +1,8 @@
 #ifndef STATISTICSWINDOW_H
 #define STATISTICSWINDOW_H
 
+#include "qchartview.h"
 #include <QDialog>
-#include <QtCharts/QChartView>
-#include <QtCharts/QBarSeries>
-#include <QtCharts/QBarSet>
-#include <QtCharts/QLegend>
-#include <QtCharts/QBarCategoryAxis>
-#include <QtCharts/QBarSeries>
-#include <QtCharts/QHorizontalBarSeries>
-#include <QtCharts/QHorizontalPercentBarSeries>
-#include <QtCharts/QPieSeries>
-#include <QtCharts/QPieSlice>
 #include <sqlite.h>
 
 namespace Ui {
@@ -29,7 +20,7 @@ public:
     void fillMostHeavyItem(int id_list);
     ~StatisticsWindow();
 private slots:
-    void fillChart(QtCharts::QChartView *chartView, QSqlQuery query);
+    void fillChart(QChartView *chartView, QSqlQuery query);
 
 private:
     Ui::StatisticsWindow *ui;

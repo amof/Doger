@@ -21,7 +21,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_12">
      <item>
-      <widget class="QtCharts::QChartView" name="cv_backpack">
+      <widget class="QChartView" name="cv_backpack">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -37,7 +37,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QtCharts::QChartView" name="cv_self">
+      <widget class="QChartView" name="cv_self">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -57,7 +57,7 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="QtCharts::QChartView" name="cv_itemWeight">
+      <widget class="QChartView" name="cv_itemWeight">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -79,7 +79,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QtCharts::QChartView" name="cv_self_2">
+      <widget class="QChartView" name="cv_self_2">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
          <horstretch>0</horstretch>
@@ -100,10 +100,9 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>QtCharts::QChartView</class>
+   <class>QChartView</class>
    <extends>QGraphicsView</extends>
-   <header location="global">QtCharts/QChartView&gt;
-#include &lt;QtCharts/chartsnamespace.h</header>
+   <header location="global">QtCharts</header>
   </customwidget>
  </customwidgets>
  <resources>

@@ -225,11 +225,11 @@ void ItemWindow::on_btn_alim_deleteImage_clicked()
 bool ItemWindow::on_btn_item_save_clicked()
 {
     bool insertSuccessfully = false;
-    if(ui->cb_item_brand->currentIndex()!=0 && !ui->le_item_reference->text().isEmpty()){
+    if(ui->cb_item_brand->currentIndex()!=0 && ui->cb_item_categorie->currentIndex()!=0 && !ui->le_item_reference->text().isEmpty()){
         qDebug()<<"[ItemWindow] Saving !";
         ItemStruct itemStruct ;
         itemStruct.id_item=0;
-        itemStruct.id_category=idCategories.at(ui->cb_item_categorie->currentIndex());
+        itemStruct.id_category=idCategories.at(ui->cb_item_categorie->currentIndex()-1);
         itemStruct.id_brand=idBrand.at(ui->cb_item_brand->currentIndex()-1);
         itemStruct.reference=ui->le_item_reference->text();
         itemStruct.weight=replaceDotWithComma(ui->le_item_weight->text());
@@ -292,12 +292,14 @@ void ItemWindow::on_cb_item_brand_activated(int index)
 void ItemWindow::on_btn_item_newBrand_clicked()
 {
     if(ui->cb_item_brand->findText(ui->le_item_brand->text())==-1){
+        int indexCategory = ui->cb_item_categorie->currentIndex();
         ui->le_item_brand->hide();
         ui->btn_item_newBrand->hide();
         if(ui->cb_item_brand->currentIndex()==0){
             sqlite->addCategoryBrand(sqlite_BRAND, ui->le_item_brand->text());
         }
         loadDatabase(id_item);
+        ui->cb_item_categorie->setCurrentIndex(indexCategory);
         ui->cb_item_brand->setCurrentText(ui->le_item_brand->text());
         ui->le_item_brand->clear();
 
